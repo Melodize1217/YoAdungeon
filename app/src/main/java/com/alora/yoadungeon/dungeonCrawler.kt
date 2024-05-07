@@ -2,6 +2,7 @@ package com.alora.yoadungeon
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -78,6 +79,8 @@ class dungeonCrawler : AppCompatActivity() {
 
     internal lateinit var healingtowerText: TextView
 
+    internal lateinit var dialogue: TextView
+
 
 
 
@@ -88,8 +91,8 @@ class dungeonCrawler : AppCompatActivity() {
     var element = "neutral"
     var health = 10
     var mana = 10
-    var coins = 0
-    var keys = 0
+    var coins = 100
+    var keys = 1
     var chainamount = 0
     var healthPamount = 0
     var manaPamount = 0
@@ -109,6 +112,11 @@ class dungeonCrawler : AppCompatActivity() {
     var isEnemyCharged = false
     var isEnemyChained = false
     var chainTurns = 0
+
+    var dialogSetting = "Filler"
+
+    var shopDebugCode = "Down"
+    var shopDebugActive = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -185,27 +193,634 @@ class dungeonCrawler : AppCompatActivity() {
 
         healingtowerText = findViewById(R.id.healingtowerText)
 
+        dialogue = findViewById(R.id.dialogue)
+
 
 
 
 
         upButton.setOnClickListener {
+            if (textScreen == "Base") {
+                if (selectedText == "Attack") {
+                    attackselected.visibility = View.GONE
+                    attackUnselected.visibility = View.VISIBLE
+                    blockselected.visibility = View.VISIBLE
+                    blockUnselected.visibility = View.GONE
+                    selectedText = "Block"
+                } else if (selectedText == "Block") {
+                    blockselected.visibility = View.GONE
+                    blockUnselected.visibility = View.VISIBLE
+                    attackselected.visibility = View.VISIBLE
+                    attackUnselected.visibility = View.GONE
+                    selectedText = "Attack"
+                }else if (selectedText == "Item") {
+                    itemsselected.visibility = View.GONE
+                    itemsUnselected.visibility = View.VISIBLE
+                    magicselected.visibility = View.VISIBLE
+                    magicUnselected.visibility = View.GONE
+                    selectedText = "Magic"
+                } else if (selectedText == "Magic") {
+                    magicselected.visibility = View.GONE
+                    magicUnselected.visibility = View.VISIBLE
+                    itemsselected.visibility = View.VISIBLE
+                    itemsUnselected.visibility = View.GONE
+                    selectedText = "Item"
+                }
 
+            } else if (textScreen == "Element") {
+                if (selectedText == "Fire") {
+                    fireselected.visibility = View.GONE
+                    fireUnselected.visibility = View.VISIBLE
+                    grassselected.visibility = View.VISIBLE
+                    grassUnselected.visibility = View.GONE
+                    selectedText = "Grass"
+                } else if (selectedText == "Grass") {
+                    grassselected.visibility = View.GONE
+                    grassUnselected.visibility = View.VISIBLE
+                    fireselected.visibility = View.VISIBLE
+                    fireUnselected.visibility = View.GONE
+                    selectedText = "Fire"
+                }else if (selectedText == "Water") {
+                    waterselected.visibility = View.GONE
+                    waterUnselected.visibility = View.VISIBLE
+                    neutralselected.visibility = View.VISIBLE
+                    neutralUnselected.visibility = View.GONE
+                    selectedText = "Neutral"
+                } else if (selectedText == "Neutral") {
+                    neutralselected.visibility = View.GONE
+                    neutralUnselected.visibility = View.VISIBLE
+                    waterselected.visibility = View.VISIBLE
+                    waterUnselected.visibility = View.GONE
+                    selectedText = "Water"
+                }
+
+            } else if (textScreen == "Items") {
+                if (selectedText == "Health") {
+                    healthPselected.visibility = View.GONE
+                    healthPUnselected.visibility = View.VISIBLE
+                    confusePselected.visibility = View.VISIBLE
+                    confusePUnselected.visibility = View.GONE
+                    selectedText = "Confuse"
+                } else if (selectedText == "Confuse") {
+                    confusePselected.visibility = View.GONE
+                    confusePUnselected.visibility = View.VISIBLE
+                    healthPselected.visibility = View.VISIBLE
+                    healthPUnselected.visibility = View.GONE
+                    selectedText = "Health"
+                }else if (selectedText == "Mana") {
+                    manaPselected.visibility = View.GONE
+                    manaPUnselected.visibility = View.VISIBLE
+                    chainselected.visibility = View.VISIBLE
+                    chainUnselected.visibility = View.GONE
+                    selectedText = "Chain"
+                } else if (selectedText == "Chain") {
+                    chainselected.visibility = View.GONE
+                    chainUnselected.visibility = View.VISIBLE
+                    manaPselected.visibility = View.VISIBLE
+                    manaPUnselected.visibility = View.GONE
+                    selectedText = "Mana"
+                }
+
+            } else if (textScreen == "Shop") {
+                if (selectedText == "HealthShop") {
+                    healthPshopselected.visibility = View.GONE
+                    healthPshopUnselected.visibility = View.VISIBLE
+                    confusePshopselected.visibility = View.VISIBLE
+                    confusePshopUnselected.visibility = View.GONE
+                    selectedText = "ConfuseShop"
+                } else if (selectedText == "ConfuseShop") {
+                    confusePshopselected.visibility = View.GONE
+                    confusePshopUnselected.visibility = View.VISIBLE
+                    healthPshopselected.visibility = View.VISIBLE
+                    healthPshopUnselected.visibility = View.GONE
+                    selectedText = "HealthShop"
+                }else if (selectedText == "ManaShop") {
+                    manaPshopselected.visibility = View.GONE
+                    manaPshopUnselected.visibility = View.VISIBLE
+                    chainshopselected.visibility = View.VISIBLE
+                    chainshopUnselected.visibility = View.GONE
+                    selectedText = "ChainShop"
+                } else if (selectedText == "ChainShop") {
+                    chainshopselected.visibility = View.GONE
+                    chainshopUnselected.visibility = View.VISIBLE
+                    manaPshopselected.visibility = View.VISIBLE
+                    manaPshopUnselected.visibility = View.GONE
+                    selectedText = "ManaShop"
+                }
+
+            }
+            if (shopDebugCode == "Up") {
+                shopDebugCode = "Right"
+            } else {
+                shopDebugCode = "Down"
+            }
         }
         leftButton.setOnClickListener {
-            Toast.makeText(this, "left", Toast.LENGTH_SHORT).show()
+            if (textScreen == "Base") {
+                if (selectedText == "Attack") {
+                    attackselected.visibility = View.GONE
+                    attackUnselected.visibility = View.VISIBLE
+                    magicselected.visibility = View.VISIBLE
+                    magicUnselected.visibility = View.GONE
+                    selectedText = "Magic"
+                } else if (selectedText == "Block") {
+                    blockselected.visibility = View.GONE
+                    blockUnselected.visibility = View.VISIBLE
+                    itemsselected.visibility = View.VISIBLE
+                    itemsUnselected.visibility = View.GONE
+                    selectedText = "Item"
+                }else if (selectedText == "Magic") {
+                    magicselected.visibility = View.GONE
+                    magicUnselected.visibility = View.VISIBLE
+                    attackselected.visibility = View.VISIBLE
+                    attackUnselected.visibility = View.GONE
+                    selectedText = "Attack"
+                } else if (selectedText == "Item") {
+                    itemsselected.visibility = View.GONE
+                    itemsUnselected.visibility = View.VISIBLE
+                    blockselected.visibility = View.VISIBLE
+                    blockUnselected.visibility = View.GONE
+                    selectedText = "Block"
+                }
+
+            } else if (textScreen == "Element") {
+                if (selectedText == "Fire") {
+                    fireselected.visibility = View.GONE
+                    fireUnselected.visibility = View.VISIBLE
+                    waterselected.visibility = View.VISIBLE
+                    waterUnselected.visibility = View.GONE
+                    selectedText = "Water"
+                } else if (selectedText == "Grass") {
+                    grassselected.visibility = View.GONE
+                    grassUnselected.visibility = View.VISIBLE
+                    neutralselected.visibility = View.VISIBLE
+                    neutralUnselected.visibility = View.GONE
+                    selectedText = "Neutral"
+                }else if (selectedText == "Water") {
+                    waterselected.visibility = View.GONE
+                    waterUnselected.visibility = View.VISIBLE
+                    fireselected.visibility = View.VISIBLE
+                    fireUnselected.visibility = View.GONE
+                    selectedText = "Fire"
+                } else if (selectedText == "Neutral") {
+                    neutralselected.visibility = View.GONE
+                    neutralUnselected.visibility = View.VISIBLE
+                    grassselected.visibility = View.VISIBLE
+                    grassUnselected.visibility = View.GONE
+                    selectedText = "Grass"
+                }
+
+            } else if (textScreen == "Items") {
+                if (selectedText == "Health") {
+                    healthPselected.visibility = View.GONE
+                    healthPUnselected.visibility = View.VISIBLE
+                    manaPselected.visibility = View.VISIBLE
+                    manaPUnselected.visibility = View.GONE
+                    selectedText = "Mana"
+                } else if (selectedText == "Confuse") {
+                    confusePselected.visibility = View.GONE
+                    confusePUnselected.visibility = View.VISIBLE
+                    chainselected.visibility = View.VISIBLE
+                    chainUnselected.visibility = View.GONE
+                    selectedText = "Chain"
+                }else if (selectedText == "Mana") {
+                    manaPselected.visibility = View.GONE
+                    manaPUnselected.visibility = View.VISIBLE
+                    healthPselected.visibility = View.VISIBLE
+                    healthPUnselected.visibility = View.GONE
+                    selectedText = "Health"
+                } else if (selectedText == "Chain") {
+                    chainselected.visibility = View.GONE
+                    chainUnselected.visibility = View.VISIBLE
+                    confusePselected.visibility = View.VISIBLE
+                    confusePUnselected.visibility = View.GONE
+                    selectedText = "Confuse"
+                }
+
+            } else if (textScreen == "Shop") {
+                if (selectedText == "HealthShop") {
+                    healthPshopselected.visibility = View.GONE
+                    healthPshopUnselected.visibility = View.VISIBLE
+                    manaPshopselected.visibility = View.VISIBLE
+                    manaPshopUnselected.visibility = View.GONE
+                    selectedText = "ManaShop"
+                } else if (selectedText == "ConfuseShop") {
+                    confusePshopselected.visibility = View.GONE
+                    confusePshopUnselected.visibility = View.VISIBLE
+                    chainshopselected.visibility = View.VISIBLE
+                    chainshopUnselected.visibility = View.GONE
+                    selectedText = "ChainShop"
+                }else if (selectedText == "ManaShop") {
+                    manaPshopselected.visibility = View.GONE
+                    manaPshopUnselected.visibility = View.VISIBLE
+                    healthPshopselected.visibility = View.VISIBLE
+                    healthPshopUnselected.visibility = View.GONE
+                    selectedText = "HealthShop"
+                } else if (selectedText == "ChainShop") {
+                    chainshopselected.visibility = View.GONE
+                    chainshopUnselected.visibility = View.VISIBLE
+                    confusePshopselected.visibility = View.VISIBLE
+                    confusePshopUnselected.visibility = View.GONE
+                    selectedText = "ConfuseShop"
+                }
+
+            }
+            if (shopDebugCode == "Left") {
+                shopDebugCode = "Up"
+            } else {
+                shopDebugCode = "Down"
+            }
         }
         downButton.setOnClickListener {
-            Toast.makeText(this, "down", Toast.LENGTH_SHORT).show()
+            if (textScreen == "Base") {
+                if (selectedText == "Attack") {
+                    attackselected.visibility = View.GONE
+                    attackUnselected.visibility = View.VISIBLE
+                    blockselected.visibility = View.VISIBLE
+                    blockUnselected.visibility = View.GONE
+                    selectedText = "Block"
+                } else if (selectedText == "Block") {
+                    blockselected.visibility = View.GONE
+                    blockUnselected.visibility = View.VISIBLE
+                    attackselected.visibility = View.VISIBLE
+                    attackUnselected.visibility = View.GONE
+                    selectedText = "Attack"
+                }else if (selectedText == "item") {
+                    itemsselected.visibility = View.GONE
+                    itemsUnselected.visibility = View.VISIBLE
+                    magicselected.visibility = View.VISIBLE
+                    magicUnselected.visibility = View.GONE
+                    selectedText = "Magic"
+                } else if (selectedText == "Magic") {
+                    magicselected.visibility = View.GONE
+                    magicUnselected.visibility = View.VISIBLE
+                    itemsselected.visibility = View.VISIBLE
+                    itemsUnselected.visibility = View.GONE
+                    selectedText = "Item"
+                }
+
+            } else if (textScreen == "Element") {
+                if (selectedText == "Fire") {
+                    fireselected.visibility = View.GONE
+                    fireUnselected.visibility = View.VISIBLE
+                    grassselected.visibility = View.VISIBLE
+                    grassUnselected.visibility = View.GONE
+                    selectedText = "Grass"
+                } else if (selectedText == "Grass") {
+                    grassselected.visibility = View.GONE
+                    grassUnselected.visibility = View.VISIBLE
+                    fireselected.visibility = View.VISIBLE
+                    fireUnselected.visibility = View.GONE
+                    selectedText = "Fire"
+                }else if (selectedText == "Water") {
+                    waterselected.visibility = View.GONE
+                    waterUnselected.visibility = View.VISIBLE
+                    neutralselected.visibility = View.VISIBLE
+                    neutralUnselected.visibility = View.GONE
+                    selectedText = "Neutral"
+                } else if (selectedText == "Neutral") {
+                    neutralselected.visibility = View.GONE
+                    neutralUnselected.visibility = View.VISIBLE
+                    waterselected.visibility = View.VISIBLE
+                    waterUnselected.visibility = View.GONE
+                    selectedText = "Water"
+                }
+
+            } else if (textScreen == "Items") {
+                if (selectedText == "Health") {
+                    healthPselected.visibility = View.GONE
+                    healthPUnselected.visibility = View.VISIBLE
+                    confusePselected.visibility = View.VISIBLE
+                    confusePUnselected.visibility = View.GONE
+                    selectedText = "Confuse"
+                } else if (selectedText == "Confuse") {
+                    confusePselected.visibility = View.GONE
+                    confusePUnselected.visibility = View.VISIBLE
+                    healthPselected.visibility = View.VISIBLE
+                    healthPUnselected.visibility = View.GONE
+                    selectedText = "Health"
+                }else if (selectedText == "Mana") {
+                    manaPselected.visibility = View.GONE
+                    manaPUnselected.visibility = View.VISIBLE
+                    chainselected.visibility = View.VISIBLE
+                    chainUnselected.visibility = View.GONE
+                    selectedText = "Chain"
+                } else if (selectedText == "Chain") {
+                    chainselected.visibility = View.GONE
+                    chainUnselected.visibility = View.VISIBLE
+                    manaPselected.visibility = View.VISIBLE
+                    manaPUnselected.visibility = View.GONE
+                    selectedText = "Mana"
+                }
+
+            } else if (textScreen == "Shop") {
+                if (selectedText == "HealthShop") {
+                    healthPshopselected.visibility = View.GONE
+                    healthPshopUnselected.visibility = View.VISIBLE
+                    confusePshopselected.visibility = View.VISIBLE
+                    confusePshopUnselected.visibility = View.GONE
+                    selectedText = "ConfuseShop"
+                } else if (selectedText == "ConfuseShop") {
+                    confusePshopselected.visibility = View.GONE
+                    confusePshopUnselected.visibility = View.VISIBLE
+                    healthPshopselected.visibility = View.VISIBLE
+                    healthPshopUnselected.visibility = View.GONE
+                    selectedText = "HealthShop"
+                }else if (selectedText == "ManaShop") {
+                    manaPshopselected.visibility = View.GONE
+                    manaPshopUnselected.visibility = View.VISIBLE
+                    chainshopselected.visibility = View.VISIBLE
+                    chainshopUnselected.visibility = View.GONE
+                    selectedText = "ChainShop"
+                } else if (selectedText == "ChainShop") {
+                    chainshopselected.visibility = View.GONE
+                    chainshopUnselected.visibility = View.VISIBLE
+                    manaPshopselected.visibility = View.VISIBLE
+                    manaPshopUnselected.visibility = View.GONE
+                    selectedText = "ManaShop"
+                }
+
+            }
+
+            if (shopDebugCode == "Down") {
+                shopDebugCode = "Left"
+            }
         }
         rightButton.setOnClickListener {
-            Toast.makeText(this, "right", Toast.LENGTH_SHORT).show()
+            if (textScreen == "Base") {
+                if (selectedText == "Attack") {
+                    attackselected.visibility = View.GONE
+                    attackUnselected.visibility = View.VISIBLE
+                    magicselected.visibility = View.VISIBLE
+                    magicUnselected.visibility = View.GONE
+                    selectedText = "Magic"
+                } else if (selectedText == "Block") {
+                    blockselected.visibility = View.GONE
+                    blockUnselected.visibility = View.VISIBLE
+                    itemsselected.visibility = View.VISIBLE
+                    itemsUnselected.visibility = View.GONE
+                    selectedText = "Item"
+                }else if (selectedText == "Magic") {
+                    magicselected.visibility = View.GONE
+                    magicUnselected.visibility = View.VISIBLE
+                    attackselected.visibility = View.VISIBLE
+                    attackUnselected.visibility = View.GONE
+                    selectedText = "Attack"
+                } else if (selectedText == "Item") {
+                    itemsselected.visibility = View.GONE
+                    itemsUnselected.visibility = View.VISIBLE
+                    blockselected.visibility = View.VISIBLE
+                    blockUnselected.visibility = View.GONE
+                    selectedText = "Block"
+                }
+
+            } else if (textScreen == "Element") {
+                if (selectedText == "Fire") {
+                    fireselected.visibility = View.GONE
+                    fireUnselected.visibility = View.VISIBLE
+                    waterselected.visibility = View.VISIBLE
+                    waterUnselected.visibility = View.GONE
+                    selectedText = "Water"
+                } else if (selectedText == "Grass") {
+                    grassselected.visibility = View.GONE
+                    grassUnselected.visibility = View.VISIBLE
+                    neutralselected.visibility = View.VISIBLE
+                    neutralUnselected.visibility = View.GONE
+                    selectedText = "Neutral"
+                }else if (selectedText == "Water") {
+                    waterselected.visibility = View.GONE
+                    waterUnselected.visibility = View.VISIBLE
+                    fireselected.visibility = View.VISIBLE
+                    fireUnselected.visibility = View.GONE
+                    selectedText = "Fire"
+                } else if (selectedText == "Neutral") {
+                    neutralselected.visibility = View.GONE
+                    neutralUnselected.visibility = View.VISIBLE
+                    grassselected.visibility = View.VISIBLE
+                    grassUnselected.visibility = View.GONE
+                    selectedText = "Grass"
+                }
+
+            } else if (textScreen == "Items") {
+                if (selectedText == "Health") {
+                    healthPselected.visibility = View.GONE
+                    healthPUnselected.visibility = View.VISIBLE
+                    manaPselected.visibility = View.VISIBLE
+                    manaPUnselected.visibility = View.GONE
+                    selectedText = "Mana"
+                } else if (selectedText == "Confuse") {
+                    confusePselected.visibility = View.GONE
+                    confusePUnselected.visibility = View.VISIBLE
+                    chainselected.visibility = View.VISIBLE
+                    chainUnselected.visibility = View.GONE
+                    selectedText = "Chain"
+                }else if (selectedText == "Mana") {
+                    manaPselected.visibility = View.GONE
+                    manaPUnselected.visibility = View.VISIBLE
+                    healthPselected.visibility = View.VISIBLE
+                    healthPUnselected.visibility = View.GONE
+                    selectedText = "Health"
+                } else if (selectedText == "Chain") {
+                    chainselected.visibility = View.GONE
+                    chainUnselected.visibility = View.VISIBLE
+                    confusePselected.visibility = View.VISIBLE
+                    confusePUnselected.visibility = View.GONE
+                    selectedText = "Confuse"
+                }
+
+            } else if (textScreen == "Shop") {
+                if (selectedText == "HealthShop") {
+                    healthPshopselected.visibility = View.GONE
+                    healthPshopUnselected.visibility = View.VISIBLE
+                    manaPshopselected.visibility = View.VISIBLE
+                    manaPshopUnselected.visibility = View.GONE
+                    selectedText = "ManaShop"
+                } else if (selectedText == "ConfuseShop") {
+                    confusePshopselected.visibility = View.GONE
+                    confusePshopUnselected.visibility = View.VISIBLE
+                    chainshopselected.visibility = View.VISIBLE
+                    chainshopUnselected.visibility = View.GONE
+                    selectedText = "ChainShop"
+                }else if (selectedText == "ManaShop") {
+                    manaPshopselected.visibility = View.GONE
+                    manaPshopUnselected.visibility = View.VISIBLE
+                    healthPshopselected.visibility = View.VISIBLE
+                    healthPshopUnselected.visibility = View.GONE
+                    selectedText = "HealthShop"
+                } else if (selectedText == "ChainShop") {
+                    chainshopselected.visibility = View.GONE
+                    chainshopUnselected.visibility = View.VISIBLE
+                    confusePshopselected.visibility = View.VISIBLE
+                    confusePshopUnselected.visibility = View.GONE
+                    selectedText = "ConfuseShop"
+                }
+
+            }
+
+            if (shopDebugCode == "Right") {
+                shopDebugCode = "B"
+            } else {
+                shopDebugCode = "Down"
+            }
         }
         aButton.setOnClickListener {
-            Toast.makeText(this, "a", Toast.LENGTH_SHORT).show()
+            if (textScreen == "Base") {
+                if (selectedText == "Magic") {
+                    magicselected.visibility = View.GONE
+                    itemsUnselected.visibility = View.GONE
+                    attackUnselected.visibility = View.GONE
+                    blockUnselected.visibility = View.GONE
+                    fireselected.visibility = View.VISIBLE
+                    waterUnselected.visibility = View.VISIBLE
+                    grassUnselected.visibility = View.VISIBLE
+                    neutralUnselected.visibility = View.VISIBLE
+                    textScreen = "Element"
+                    selectedText = "Fire"
+                } else if (selectedText == "Item") {
+                    magicUnselected.visibility = View.GONE
+                    itemsselected.visibility = View.GONE
+                    attackUnselected.visibility = View.GONE
+                    blockUnselected.visibility = View.GONE
+
+                    healthPselected.visibility = View.VISIBLE
+                    confusePUnselected.visibility = View.VISIBLE
+                    manaPUnselected.visibility = View.VISIBLE
+                    chainUnselected.visibility = View.VISIBLE
+                    textScreen = "Items"
+                    selectedText = "Health"
+                } else if (selectedText == "Attack") {
+                    Toast.makeText(this, "You attack the enemy", Toast.LENGTH_SHORT).show()
+                } else if (selectedText == "Block") {
+                    Toast.makeText(this, "You block this turn", Toast.LENGTH_SHORT).show()
+                }
+            } else if (textScreen == "Shop?") {
+                if (keys >= 1) {
+                    dialogue.visibility = View.GONE
+                    healthPshopselected.visibility = View.VISIBLE
+                    manaPshopUnselected.visibility = View.VISIBLE
+                    confusePshopUnselected.visibility = View.VISIBLE
+                    chainshopUnselected.visibility = View.VISIBLE
+                    keys -= 1
+                    textScreen = "Shop"
+                    selectedText = "HealthShop"
+                } else {
+                    Toast.makeText(this, "Oof no keys guess you gotta say no", Toast.LENGTH_SHORT).show()
+                }
+            } else if (textScreen == "Shop") {
+                if (selectedText == "HealthShop") {
+                    if (coins >= 3) {
+                        healthPamount += 1
+                        coins -= 3
+                    }
+                } else if (selectedText == "ManaShop") {
+                    if (coins >= 5) {
+                        manaPamount += 1
+                        coins -= 5
+                    }
+                } else if (selectedText == "ConfuseShop") {
+                    if (coins >= 7) {
+                        confusePamount += 1
+                        coins -= 7
+                    }
+                } else if (selectedText == "ChainShop") {
+                    if (coins >= 10) {
+                        confusePamount += 1
+                        coins -= 10
+                    }
+                }
+            }
+
+            if (shopDebugCode == "A") {
+                textScreen = "Shop?"
+
+                dialogue.text = "Push A to use one key to get into the shop \n Or Push B to go to the next room"
+                dialogue.visibility = View.VISIBLE
+
+                attackselected.visibility = View.GONE
+                attackUnselected.visibility = View.GONE
+                blockselected.visibility = View.GONE
+                blockUnselected.visibility = View.GONE
+                magicselected.visibility = View.GONE
+                magicUnselected.visibility = View.GONE
+                itemsselected.visibility = View.GONE
+                itemsUnselected.visibility = View.GONE
+            } else {
+                shopDebugCode = "Down"
+            }
         }
         bButton.setOnClickListener {
-            Toast.makeText(this, "b", Toast.LENGTH_SHORT).show()
+            if (textScreen == "Element") {
+                magicselected.visibility = View.VISIBLE
+                itemsUnselected.visibility = View.VISIBLE
+                attackUnselected.visibility = View.VISIBLE
+                blockUnselected.visibility = View.VISIBLE
+                fireselected.visibility = View.GONE
+                fireUnselected.visibility = View.GONE
+                waterUnselected.visibility = View.GONE
+                grassUnselected.visibility = View.GONE
+                neutralUnselected.visibility = View.GONE
+                waterselected.visibility = View.GONE
+                grassselected.visibility = View.GONE
+                neutralselected.visibility = View.GONE
+                textScreen = "Base"
+                selectedText = "Magic"
+            } else if (textScreen == "Items") {
+                    magicUnselected.visibility = View.VISIBLE
+                    itemsselected.visibility = View.VISIBLE
+                    attackUnselected.visibility = View.VISIBLE
+                    blockUnselected.visibility = View.VISIBLE
+
+                    chainselected.visibility = View.GONE
+                    chainUnselected.visibility = View.GONE
+                    confusePselected.visibility = View.GONE
+                    confusePUnselected.visibility = View.GONE
+                    manaPUnselected.visibility = View.GONE
+                    healthPselected.visibility = View.GONE
+                    healthPUnselected.visibility = View.GONE
+                    manaPselected.visibility = View.GONE
+                    textScreen = "Base"
+                    selectedText = "Item"
+
+            } else if (textScreen == "Shop?") {
+                dialogue.visibility = View.GONE
+
+                magicselected.visibility = View.VISIBLE
+                itemsUnselected.visibility = View.VISIBLE
+                attackUnselected.visibility = View.VISIBLE
+                blockUnselected.visibility = View.VISIBLE
+
+                textScreen = "Base"
+                selectedText = "Attack"
+
+
+                //Go back to random room in queue
+            } else if (textScreen == "Shop") {
+                //This should go to the next random room in the queue
+
+                magicselected.visibility = View.VISIBLE
+                itemsUnselected.visibility = View.VISIBLE
+                attackUnselected.visibility = View.VISIBLE
+                blockUnselected.visibility = View.VISIBLE
+
+                chainshopselected.visibility = View.GONE
+                chainshopUnselected.visibility = View.GONE
+                confusePshopselected.visibility = View.GONE
+                confusePshopUnselected.visibility = View.GONE
+                manaPshopUnselected.visibility = View.GONE
+                healthPshopselected.visibility = View.GONE
+                healthPshopUnselected.visibility = View.GONE
+                manaPshopselected.visibility = View.GONE
+
+                textScreen = "Base"
+                selectedText = "Attack"
+
+            }
+
+            if (shopDebugCode == "B") {
+                shopDebugCode = "A"
+            } else {
+                shopDebugCode = "Down"
+            }
         }
     }
 }
