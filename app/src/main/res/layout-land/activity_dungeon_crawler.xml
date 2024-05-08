@@ -784,7 +784,7 @@
         android:id="@+id/cointotalText"
         android:layout_width="114dp"
         android:layout_height="19dp"
-        android:text="coins: 0"
+        android:text="Coins: 0"
         android:textAlignment="center"
         android:textColor="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"

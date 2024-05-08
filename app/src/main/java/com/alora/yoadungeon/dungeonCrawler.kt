@@ -1,5 +1,6 @@
 package com.alora.yoadungeon
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -86,13 +87,13 @@ class dungeonCrawler : AppCompatActivity() {
 
     var roomNumber = 1
     var nextRoomNumber = 2
-    var nextMonster = "placeholder"
-    var nextRoom = "placeholder"
-    var element = "neutral"
+    var currentMonster = "neutralGhost"
+    var currentRoom = 1
+    var element = "Neutral"
     var health = 10
     var mana = 10
-    var coins = 100
-    var keys = 1
+    var coins = 0
+    var keys = 0
     var chainamount = 0
     var healthPamount = 0
     var manaPamount = 0
@@ -102,16 +103,20 @@ class dungeonCrawler : AppCompatActivity() {
     var defense = 1
     var enemyDamage = 1
     var enemyDefense = 1
-    var enemyElement = "neutral"
+    var enemyElement = "Neutral"
     var selectedText = "Attack"
     var textScreen = "Base"
     var isElementSwitched = false
+    var currentTurn = "You"
     var turn = 1
     var turnsTillAttack = 0
     var turnsTillCharge = 2
     var isEnemyCharged = false
+    var enemyState = "Idle"
     var isEnemyChained = false
     var chainTurns = 0
+    var healthMax = 10
+    var manaMax = 10
 
     var dialogSetting = "Filler"
 
@@ -682,6 +687,15 @@ class dungeonCrawler : AppCompatActivity() {
                     attackUnselected.visibility = View.GONE
                     blockUnselected.visibility = View.GONE
 
+                    healthPselected.text = "HealthP: $healthPamount"
+                    healthPUnselected.text = "HealthP: $healthPamount"
+                    manaPUnselected.text = "ManaP: $manaPamount"
+                    manaPselected.text = "ManaP: $manaPamount"
+                    chainUnselected.text = "Chain: $chainamount"
+                    chainselected.text = "Chain: $chainamount"
+                    confusePselected.text = "ConfuseP: $confusePamount"
+                    confusePUnselected.text = "ConfuseP: $confusePamount"
+
                     healthPselected.visibility = View.VISIBLE
                     confusePUnselected.visibility = View.VISIBLE
                     manaPUnselected.visibility = View.VISIBLE
@@ -689,6 +703,14 @@ class dungeonCrawler : AppCompatActivity() {
                     textScreen = "Items"
                     selectedText = "Health"
                 } else if (selectedText == "Attack") {
+                    attack()
+                    if (enemyState == "Idle") {
+                        textScreen = "Enemy Turn"
+
+                    }
+                    enemyTurn()
+
+
                     Toast.makeText(this, "You attack the enemy", Toast.LENGTH_SHORT).show()
                 } else if (selectedText == "Block") {
                     Toast.makeText(this, "You block this turn", Toast.LENGTH_SHORT).show()
@@ -711,21 +733,95 @@ class dungeonCrawler : AppCompatActivity() {
                     if (coins >= 3) {
                         healthPamount += 1
                         coins -= 3
+                    } else {
+                        Toast.makeText(this, "Damn guess you poor as heck", Toast.LENGTH_SHORT).show()
                     }
                 } else if (selectedText == "ManaShop") {
                     if (coins >= 5) {
                         manaPamount += 1
                         coins -= 5
-                    }
-                } else if (selectedText == "ConfuseShop") {
+                    } else {
+                        Toast.makeText(this, "Damn guess you poor as heck", Toast.LENGTH_SHORT).show()
+
+                    }               } else if (selectedText == "ConfuseShop") {
                     if (coins >= 7) {
                         confusePamount += 1
                         coins -= 7
-                    }
-                } else if (selectedText == "ChainShop") {
+                    } else {
+                        Toast.makeText(this, "Damn guess you poor as heck", Toast.LENGTH_SHORT).show()
+
+                    }               } else if (selectedText == "ChainShop") {
                     if (coins >= 10) {
-                        confusePamount += 1
+                        chainamount += 1
                         coins -= 10
+                    } else {
+                        Toast.makeText(this, "Damn guess you poor as heck", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } else if (textScreen == "Items") {
+                if (selectedText == "Health") {
+                    if (health < healthMax) {
+                        if (healthPamount > 0) {
+                            healthPamount -= 1
+                            health += 5
+                            if (health > healthMax) {
+                                health -= health - healthMax
+                            }
+                            healthText.text = "Health: $health/$healthMax"
+                        } else {
+                            Toast.makeText(this, "Don't know if you are blind but like you don't have this", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(this, "I don't think you wanna waste this", Toast.LENGTH_SHORT).show()
+                    }
+                } else if (selectedText == "Mana") {
+                    if (mana < manaMax) {
+                        if (manaPamount > 0) {
+                            manaPamount -= 1
+                            mana += 5
+                            if (mana > manaMax) {
+                                mana -= mana - manaMax
+                            }
+                            manaText.text = "Mana: $mana/$manaMax"
+                        } else {
+                            Toast.makeText(this, "Don't know if you are blind but like you don't have this", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(this, "I don't think you wanna waste this", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } else if (textScreen == "Element") {
+                if (selectedText == "Fire") {
+                    if (mana >= 5) {
+                        elementChosen.setImageResource(R.drawable.fireelement)
+                        swordshield.setImageResource(R.drawable.fire)
+                        element = "Fire"
+                        mana -= 5
+                        manaText.text = "Mana: $mana/$manaMax"
+                    }
+                } else if (selectedText == "Water") {
+                    if (mana >= 5) {
+                        elementChosen.setImageResource(R.drawable.waterelement)
+                        swordshield.setImageResource(R.drawable.water)
+                        element = "Water"
+                        mana -= 5
+                        manaText.text = "Mana: $mana/$manaMax"
+                    }
+                } else if (selectedText == "Grass") {
+                    if (mana >= 5) {
+                        elementChosen.setImageResource(R.drawable.grasselement)
+                        swordshield.setImageResource(R.drawable.grass)
+                        element = "Grass"
+                        mana -= 5
+                        manaText.text = "Mana: $mana/$manaMax"
+                    }
+                } else if (selectedText == "Neutral") {
+                    if (mana >= 5) {
+                        elementChosen.setImageResource(R.drawable.neutralelement)
+                        swordshield.setImageResource(R.drawable.neutral)
+                        element = "Neutral"
+                        mana -= 5
+                        manaText.text = "Mana: $mana/$manaMax"
                     }
                 }
             }
@@ -744,6 +840,28 @@ class dungeonCrawler : AppCompatActivity() {
                 magicUnselected.visibility = View.GONE
                 itemsselected.visibility = View.GONE
                 itemsUnselected.visibility = View.GONE
+
+                chainselected.visibility = View.GONE
+                chainUnselected.visibility = View.GONE
+                confusePselected.visibility = View.GONE
+                confusePUnselected.visibility = View.GONE
+                manaPUnselected.visibility = View.GONE
+                healthPselected.visibility = View.GONE
+                healthPUnselected.visibility = View.GONE
+                manaPselected.visibility = View.GONE
+
+                fireselected.visibility = View.GONE
+                fireUnselected.visibility = View.GONE
+                waterselected.visibility = View.GONE
+                waterUnselected.visibility = View.GONE
+                grassUnselected.visibility = View.GONE
+                grassselected.visibility = View.GONE
+                neutralUnselected.visibility = View.GONE
+                neutralselected.visibility = View.GONE
+
+                shopDebugCode = "Down"
+
+
             } else {
                 shopDebugCode = "Down"
             }
@@ -784,9 +902,9 @@ class dungeonCrawler : AppCompatActivity() {
             } else if (textScreen == "Shop?") {
                 dialogue.visibility = View.GONE
 
-                magicselected.visibility = View.VISIBLE
+                magicUnselected.visibility = View.VISIBLE
                 itemsUnselected.visibility = View.VISIBLE
-                attackUnselected.visibility = View.VISIBLE
+                attackselected.visibility = View.VISIBLE
                 blockUnselected.visibility = View.VISIBLE
 
                 textScreen = "Base"
@@ -797,9 +915,9 @@ class dungeonCrawler : AppCompatActivity() {
             } else if (textScreen == "Shop") {
                 //This should go to the next random room in the queue
 
-                magicselected.visibility = View.VISIBLE
+                magicUnselected.visibility = View.VISIBLE
                 itemsUnselected.visibility = View.VISIBLE
-                attackUnselected.visibility = View.VISIBLE
+                attackselected.visibility = View.VISIBLE
                 blockUnselected.visibility = View.VISIBLE
 
                 chainshopselected.visibility = View.GONE
@@ -822,5 +940,953 @@ class dungeonCrawler : AppCompatActivity() {
                 shopDebugCode = "Down"
             }
         }
+    }
+
+    private fun attack() {
+        if (currentTurn == "You") {
+            if (element == "Neutral" && enemyElement == "Neutral") {
+                if (enemyHealth > 1) {
+                    enemyHealth -= 1
+                } else if (enemyHealth == 1) {
+                    enemyHealth = 0
+                    if (currentMonster == "neutralGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostnhurt)
+                    } else if (currentMonster == "fireGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostfhurt)
+                    } else if (currentMonster == "waterGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostwhurt)
+                    } else if (currentMonster == "grassGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostghurt)
+                    } else if (currentMonster == "neutralSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellynhurt)
+                    } else if (currentMonster == "fireSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellyfhurt)
+                    } else if (currentMonster == "waterSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellywhurt)
+                    } else if (currentMonster == "grassSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellyghurt)
+                    } else if (currentMonster == "neutralSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spidernhurt)
+                    } else if (currentMonster == "fireSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spiderfhurt)
+                    } else if (currentMonster == "waterSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spiderwhurt)
+                    } else if (currentMonster == "grassSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spiderghurt)
+                    } else if (currentMonster == "neutralGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmynhurt)
+                    } else if (currentMonster == "fireGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmyfhurt)
+                    } else if (currentMonster == "waterGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmywhurt)
+                    } else if (currentMonster == "grassGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmyghurt)
+                    } else if (currentMonster == "RestrainingOrder" ) {
+                        restrainingOrder.setImageResource(R.drawable.restrainhurt)
+                    }
+                }
+            } else if (element == "Fire" && enemyElement == "Fire") {
+                if (enemyHealth > 1) {
+                    enemyHealth -= 1
+                } else if (enemyHealth == 1) {
+                    enemyHealth = 0
+                    if (currentMonster == "neutralGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostnhurt)
+                    } else if (currentMonster == "fireGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostfhurt)
+                    } else if (currentMonster == "waterGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostwhurt)
+                    } else if (currentMonster == "grassGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostghurt)
+                    } else if (currentMonster == "neutralSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellynhurt)
+                    } else if (currentMonster == "fireSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellyfhurt)
+                    } else if (currentMonster == "waterSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellywhurt)
+                    } else if (currentMonster == "grassSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellyghurt)
+                    } else if (currentMonster == "neutralSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spidernhurt)
+                    } else if (currentMonster == "fireSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spiderfhurt)
+                    } else if (currentMonster == "waterSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spiderwhurt)
+                    } else if (currentMonster == "grassSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spiderghurt)
+                    } else if (currentMonster == "neutralGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmynhurt)
+                    } else if (currentMonster == "fireGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmyfhurt)
+                    } else if (currentMonster == "waterGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmywhurt)
+                    } else if (currentMonster == "grassGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmyghurt)
+                    } else if (currentMonster == "RestrainingOrder") {
+                        restrainingOrder.setImageResource(R.drawable.restrainhurt)
+                    }
+                }
+                } else if (element == "Water" && enemyElement == "Water") {
+                    if (enemyHealth > 1) {
+                        enemyHealth -= 1
+                    } else if (enemyHealth == 1) {
+                        enemyHealth = 0
+                        if (currentMonster == "neutralGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostnhurt)
+                        } else if (currentMonster == "fireGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostfhurt)
+                        } else if (currentMonster == "waterGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostwhurt)
+                        } else if (currentMonster == "grassGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostghurt)
+                        } else if (currentMonster == "neutralSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellynhurt)
+                        } else if (currentMonster == "fireSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyfhurt)
+                        } else if (currentMonster == "waterSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellywhurt)
+                        } else if (currentMonster == "grassSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyghurt)
+                        } else if (currentMonster == "neutralSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spidernhurt)
+                        } else if (currentMonster == "fireSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderfhurt)
+                        } else if (currentMonster == "waterSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderwhurt)
+                        } else if (currentMonster == "grassSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderghurt)
+                        } else if (currentMonster == "neutralGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmynhurt)
+                        } else if (currentMonster == "fireGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyfhurt)
+                        } else if (currentMonster == "waterGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmywhurt)
+                        } else if (currentMonster == "grassGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyghurt)
+                        } else if (currentMonster == "RestrainingOrder") {
+                            restrainingOrder.setImageResource(R.drawable.restrainhurt)
+                        }
+                    }
+                } else if (element == "Grass" && enemyElement == "Grass") {
+                    if (enemyHealth > 1) {
+                        enemyHealth -= 1
+                    } else if (enemyHealth == 1) {
+                        enemyHealth = 0
+                        if (currentMonster == "neutralGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostnhurt)
+                        } else if (currentMonster == "fireGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostfhurt)
+                        } else if (currentMonster == "waterGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostwhurt)
+                        } else if (currentMonster == "grassGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostghurt)
+                        } else if (currentMonster == "neutralSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellynhurt)
+                        } else if (currentMonster == "fireSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyfhurt)
+                        } else if (currentMonster == "waterSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellywhurt)
+                        } else if (currentMonster == "grassSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyghurt)
+                        } else if (currentMonster == "neutralSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spidernhurt)
+                        } else if (currentMonster == "fireSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderfhurt)
+                        } else if (currentMonster == "waterSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderwhurt)
+                        } else if (currentMonster == "grassSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderghurt)
+                        } else if (currentMonster == "neutralGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmynhurt)
+                        } else if (currentMonster == "fireGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyfhurt)
+                        } else if (currentMonster == "waterGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmywhurt)
+                        } else if (currentMonster == "grassGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyghurt)
+                        } else if (currentMonster == "RestrainingOrder") {
+                            restrainingOrder.setImageResource(R.drawable.restrainhurt)
+                        }
+                    }
+                } else if (element == "Water" && enemyElement == "Fire") {
+                    if (enemyHealth > 3) {
+                        enemyHealth -= 3
+                    } else if (enemyHealth <= 3) {
+                        enemyHealth = 0
+                        if (currentMonster == "neutralGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostnhurt)
+                        } else if (currentMonster == "fireGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostfhurt)
+                        } else if (currentMonster == "waterGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostwhurt)
+                        } else if (currentMonster == "grassGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostghurt)
+                        } else if (currentMonster == "neutralSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellynhurt)
+                        } else if (currentMonster == "fireSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyfhurt)
+                        } else if (currentMonster == "waterSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellywhurt)
+                        } else if (currentMonster == "grassSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyghurt)
+                        } else if (currentMonster == "neutralSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spidernhurt)
+                        } else if (currentMonster == "fireSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderfhurt)
+                        } else if (currentMonster == "waterSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderwhurt)
+                        } else if (currentMonster == "grassSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderghurt)
+                        } else if (currentMonster == "neutralGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmynhurt)
+                        } else if (currentMonster == "fireGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyfhurt)
+                        } else if (currentMonster == "waterGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmywhurt)
+                        } else if (currentMonster == "grassGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyghurt)
+                        } else if (currentMonster == "RestrainingOrder") {
+                            restrainingOrder.setImageResource(R.drawable.restrainhurt)
+                        }
+                    }
+                }else if (element == "Fire" && enemyElement == "Grass") {
+                    if (enemyHealth > 3) {
+                        enemyHealth -= 3
+                    } else if (enemyHealth <= 3) {
+                        enemyHealth = 0
+                        if (currentMonster == "neutralGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostnhurt)
+                        } else if (currentMonster == "fireGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostfhurt)
+                        } else if (currentMonster == "waterGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostwhurt)
+                        } else if (currentMonster == "grassGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostghurt)
+                        } else if (currentMonster == "neutralSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellynhurt)
+                        } else if (currentMonster == "fireSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyfhurt)
+                        } else if (currentMonster == "waterSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellywhurt)
+                        } else if (currentMonster == "grassSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyghurt)
+                        } else if (currentMonster == "neutralSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spidernhurt)
+                        } else if (currentMonster == "fireSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderfhurt)
+                        } else if (currentMonster == "waterSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderwhurt)
+                        } else if (currentMonster == "grassSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderghurt)
+                        } else if (currentMonster == "neutralGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmynhurt)
+                        } else if (currentMonster == "fireGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyfhurt)
+                        } else if (currentMonster == "waterGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmywhurt)
+                        } else if (currentMonster == "grassGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyghurt)
+                        } else if (currentMonster == "RestrainingOrder") {
+                            restrainingOrder.setImageResource(R.drawable.restrainhurt)
+                        }
+                    }
+                } else if (element == "Grass" && enemyElement == "Water") {
+                    if (enemyHealth > 3) {
+                        enemyHealth -= 3
+                    } else if (enemyHealth <= 3) {
+                        enemyHealth = 0
+                        if (currentMonster == "neutralGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostnhurt)
+                        } else if (currentMonster == "fireGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostfhurt)
+                        } else if (currentMonster == "waterGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostwhurt)
+                        } else if (currentMonster == "grassGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostghurt)
+                        } else if (currentMonster == "neutralSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellynhurt)
+                        } else if (currentMonster == "fireSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyfhurt)
+                        } else if (currentMonster == "waterSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellywhurt)
+                        } else if (currentMonster == "grassSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyghurt)
+                        } else if (currentMonster == "neutralSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spidernhurt)
+                        } else if (currentMonster == "fireSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderfhurt)
+                        } else if (currentMonster == "waterSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderwhurt)
+                        } else if (currentMonster == "grassSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderghurt)
+                        } else if (currentMonster == "neutralGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmynhurt)
+                        } else if (currentMonster == "fireGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyfhurt)
+                        } else if (currentMonster == "waterGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmywhurt)
+                        } else if (currentMonster == "grassGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyghurt)
+                        } else if (currentMonster == "RestrainingOrder") {
+                            restrainingOrder.setImageResource(R.drawable.restrainhurt)
+                        }
+                    }
+                } else if (element == "Fire" && enemyElement == "Water") {
+                    if (enemyHealth > 1) {
+                        enemyHealth -= 1
+                    } else if (enemyHealth <= 1) {
+                        enemyHealth = 0
+                        if (currentMonster == "neutralGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostnhurt)
+                        } else if (currentMonster == "fireGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostfhurt)
+                        } else if (currentMonster == "waterGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostwhurt)
+                        } else if (currentMonster == "grassGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostghurt)
+                        } else if (currentMonster == "neutralSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellynhurt)
+                        } else if (currentMonster == "fireSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyfhurt)
+                        } else if (currentMonster == "waterSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellywhurt)
+                        } else if (currentMonster == "grassSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyghurt)
+                        } else if (currentMonster == "neutralSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spidernhurt)
+                        } else if (currentMonster == "fireSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderfhurt)
+                        } else if (currentMonster == "waterSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderwhurt)
+                        } else if (currentMonster == "grassSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderghurt)
+                        } else if (currentMonster == "neutralGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmynhurt)
+                        } else if (currentMonster == "fireGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyfhurt)
+                        } else if (currentMonster == "waterGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmywhurt)
+                        } else if (currentMonster == "grassGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyghurt)
+                        } else if (currentMonster == "RestrainingOrder") {
+                            restrainingOrder.setImageResource(R.drawable.restrainhurt)
+                        }
+                    }
+                } else if (element == "Grass" && enemyElement == "Fire") {
+                    if (enemyHealth > 1) {
+                        enemyHealth -= 1
+                    } else if (enemyHealth <= 1) {
+                        enemyHealth = 0
+                        if (currentMonster == "neutralGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostnhurt)
+                        } else if (currentMonster == "fireGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostfhurt)
+                        } else if (currentMonster == "waterGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostwhurt)
+                        } else if (currentMonster == "grassGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostghurt)
+                        } else if (currentMonster == "neutralSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellynhurt)
+                        } else if (currentMonster == "fireSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyfhurt)
+                        } else if (currentMonster == "waterSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellywhurt)
+                        } else if (currentMonster == "grassSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyghurt)
+                        } else if (currentMonster == "neutralSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spidernhurt)
+                        } else if (currentMonster == "fireSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderfhurt)
+                        } else if (currentMonster == "waterSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderwhurt)
+                        } else if (currentMonster == "grassSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderghurt)
+                        } else if (currentMonster == "neutralGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmynhurt)
+                        } else if (currentMonster == "fireGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyfhurt)
+                        } else if (currentMonster == "waterGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmywhurt)
+                        } else if (currentMonster == "grassGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyghurt)
+                        } else if (currentMonster == "RestrainingOrder") {
+                            restrainingOrder.setImageResource(R.drawable.restrainhurt)
+                        }
+                    }
+                } else if (element == "Water" && enemyElement == "Grass") {
+                    if (enemyHealth > 1) {
+                        enemyHealth -= 1
+                    } else if (enemyHealth <= 1) {
+                        enemyHealth = 0
+                        if (currentMonster == "neutralGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostnhurt)
+                        } else if (currentMonster == "fireGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostfhurt)
+                        } else if (currentMonster == "waterGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostwhurt)
+                        } else if (currentMonster == "grassGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostghurt)
+                        } else if (currentMonster == "neutralSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellynhurt)
+                        } else if (currentMonster == "fireSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyfhurt)
+                        } else if (currentMonster == "waterSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellywhurt)
+                        } else if (currentMonster == "grassSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyghurt)
+                        } else if (currentMonster == "neutralSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spidernhurt)
+                        } else if (currentMonster == "fireSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderfhurt)
+                        } else if (currentMonster == "waterSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderwhurt)
+                        } else if (currentMonster == "grassSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderghurt)
+                        } else if (currentMonster == "neutralGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmynhurt)
+                        } else if (currentMonster == "fireGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyfhurt)
+                        } else if (currentMonster == "waterGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmywhurt)
+                        } else if (currentMonster == "grassGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyghurt)
+                        } else if (currentMonster == "RestrainingOrder") {
+                            restrainingOrder.setImageResource(R.drawable.restrainhurt)
+                        }
+                    }
+                } else if (element == "Fire" && enemyElement == "Neutral") {
+                    if (enemyHealth > 2) {
+                        enemyHealth -= 2
+                    } else if (enemyHealth <= 2) {
+                        enemyHealth = 0
+                        if (currentMonster == "neutralGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostnhurt)
+                        } else if (currentMonster == "fireGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostfhurt)
+                        } else if (currentMonster == "waterGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostwhurt)
+                        } else if (currentMonster == "grassGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostghurt)
+                        } else if (currentMonster == "neutralSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellynhurt)
+                        } else if (currentMonster == "fireSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyfhurt)
+                        } else if (currentMonster == "waterSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellywhurt)
+                        } else if (currentMonster == "grassSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyghurt)
+                        } else if (currentMonster == "neutralSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spidernhurt)
+                        } else if (currentMonster == "fireSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderfhurt)
+                        } else if (currentMonster == "waterSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderwhurt)
+                        } else if (currentMonster == "grassSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderghurt)
+                        } else if (currentMonster == "neutralGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmynhurt)
+                        } else if (currentMonster == "fireGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyfhurt)
+                        } else if (currentMonster == "waterGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmywhurt)
+                        } else if (currentMonster == "grassGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyghurt)
+                        } else if (currentMonster == "RestrainingOrder") {
+                            restrainingOrder.setImageResource(R.drawable.restrainhurt)
+                        }
+                    }
+                } else if (element == "Water" && enemyElement == "Neutral") {
+                    if (enemyHealth > 2) {
+                        enemyHealth -= 2
+                    } else if (enemyHealth <= 2) {
+                        enemyHealth = 0
+                        if (currentMonster == "neutralGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostnhurt)
+                        } else if (currentMonster == "fireGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostfhurt)
+                        } else if (currentMonster == "waterGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostwhurt)
+                        } else if (currentMonster == "grassGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostghurt)
+                        } else if (currentMonster == "neutralSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellynhurt)
+                        } else if (currentMonster == "fireSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyfhurt)
+                        } else if (currentMonster == "waterSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellywhurt)
+                        } else if (currentMonster == "grassSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyghurt)
+                        } else if (currentMonster == "neutralSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spidernhurt)
+                        } else if (currentMonster == "fireSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderfhurt)
+                        } else if (currentMonster == "waterSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderwhurt)
+                        } else if (currentMonster == "grassSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderghurt)
+                        } else if (currentMonster == "neutralGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmynhurt)
+                        } else if (currentMonster == "fireGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyfhurt)
+                        } else if (currentMonster == "waterGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmywhurt)
+                        } else if (currentMonster == "grassGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyghurt)
+                        } else if (currentMonster == "RestrainingOrder") {
+                            restrainingOrder.setImageResource(R.drawable.restrainhurt)
+                        }
+                    }
+                } else if (element == "Grass" && enemyElement == "Neutral") {
+                    if (enemyHealth > 2) {
+                        enemyHealth -= 2
+                    } else if (enemyHealth <= 2) {
+                        enemyHealth = 0
+                        if (currentMonster == "neutralGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostnhurt)
+                        } else if (currentMonster == "fireGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostfhurt)
+                        } else if (currentMonster == "waterGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostwhurt)
+                        } else if (currentMonster == "grassGhost") {
+                            ghostEnemy.setImageResource(R.drawable.ghostghurt)
+                        } else if (currentMonster == "neutralSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellynhurt)
+                        } else if (currentMonster == "fireSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyfhurt)
+                        } else if (currentMonster == "waterSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellywhurt)
+                        } else if (currentMonster == "grassSkeleton") {
+                            skeletonEnemy.setImageResource(R.drawable.skellyghurt)
+                        } else if (currentMonster == "neutralSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spidernhurt)
+                        } else if (currentMonster == "fireSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderfhurt)
+                        } else if (currentMonster == "waterSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderwhurt)
+                        } else if (currentMonster == "grassSpider") {
+                            spiderEnemy.setImageResource(R.drawable.spiderghurt)
+                        } else if (currentMonster == "neutralGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmynhurt)
+                        } else if (currentMonster == "fireGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyfhurt)
+                        } else if (currentMonster == "waterGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmywhurt)
+                        } else if (currentMonster == "grassGremlin") {
+                            gremlinEnemy.setImageResource(R.drawable.gremmyghurt)
+                        } else if (currentMonster == "RestrainingOrder") {
+                            restrainingOrder.setImageResource(R.drawable.restrainhurt)
+                        }
+                    }
+                } else if (element == "Neutral" && enemyElement == "Fire") {
+                if (enemyHealth > 1) {
+                    enemyHealth -= 1
+                } else if (enemyHealth <= 1) {
+                    enemyHealth = 0
+                    if (currentMonster == "neutralGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostnhurt)
+                    } else if (currentMonster == "fireGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostfhurt)
+                    } else if (currentMonster == "waterGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostwhurt)
+                    } else if (currentMonster == "grassGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostghurt)
+                    } else if (currentMonster == "neutralSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellynhurt)
+                    } else if (currentMonster == "fireSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellyfhurt)
+                    } else if (currentMonster == "waterSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellywhurt)
+                    } else if (currentMonster == "grassSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellyghurt)
+                    } else if (currentMonster == "neutralSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spidernhurt)
+                    } else if (currentMonster == "fireSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spiderfhurt)
+                    } else if (currentMonster == "waterSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spiderwhurt)
+                    } else if (currentMonster == "grassSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spiderghurt)
+                    } else if (currentMonster == "neutralGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmynhurt)
+                    } else if (currentMonster == "fireGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmyfhurt)
+                    } else if (currentMonster == "waterGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmywhurt)
+                    } else if (currentMonster == "grassGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmyghurt)
+                    } else if (currentMonster == "RestrainingOrder") {
+                        restrainingOrder.setImageResource(R.drawable.restrainhurt)
+                    }
+                }
+            } else if (element == "Neutral" && enemyElement == "Water") {
+                if (enemyHealth > 1) {
+                    enemyHealth -= 1
+                } else if (enemyHealth <= 1) {
+                    enemyHealth = 0
+                    if (currentMonster == "neutralGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostnhurt)
+                    } else if (currentMonster == "fireGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostfhurt)
+                    } else if (currentMonster == "waterGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostwhurt)
+                    } else if (currentMonster == "grassGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostghurt)
+                    } else if (currentMonster == "neutralSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellynhurt)
+                    } else if (currentMonster == "fireSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellyfhurt)
+                    } else if (currentMonster == "waterSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellywhurt)
+                    } else if (currentMonster == "grassSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellyghurt)
+                    } else if (currentMonster == "neutralSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spidernhurt)
+                    } else if (currentMonster == "fireSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spiderfhurt)
+                    } else if (currentMonster == "waterSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spiderwhurt)
+                    } else if (currentMonster == "grassSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spiderghurt)
+                    } else if (currentMonster == "neutralGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmynhurt)
+                    } else if (currentMonster == "fireGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmyfhurt)
+                    } else if (currentMonster == "waterGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmywhurt)
+                    } else if (currentMonster == "grassGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmyghurt)
+                    } else if (currentMonster == "RestrainingOrder") {
+                        restrainingOrder.setImageResource(R.drawable.restrainhurt)
+                    }
+                }
+            } else if (element == "Neutral" && enemyElement == "Grass") {
+                if (enemyHealth > 1) {
+                    enemyHealth -= 1
+                } else if (enemyHealth <= 1) {
+                    enemyHealth = 0
+                    if (currentMonster == "neutralGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostnhurt)
+                    } else if (currentMonster == "fireGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostfhurt)
+                    } else if (currentMonster == "waterGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostwhurt)
+                    } else if (currentMonster == "grassGhost") {
+                        ghostEnemy.setImageResource(R.drawable.ghostghurt)
+                    } else if (currentMonster == "neutralSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellynhurt)
+                    } else if (currentMonster == "fireSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellyfhurt)
+                    } else if (currentMonster == "waterSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellywhurt)
+                    } else if (currentMonster == "grassSkeleton") {
+                        skeletonEnemy.setImageResource(R.drawable.skellyghurt)
+                    } else if (currentMonster == "neutralSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spidernhurt)
+                    } else if (currentMonster == "fireSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spiderfhurt)
+                    } else if (currentMonster == "waterSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spiderwhurt)
+                    } else if (currentMonster == "grassSpider") {
+                        spiderEnemy.setImageResource(R.drawable.spiderghurt)
+                    } else if (currentMonster == "neutralGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmynhurt)
+                    } else if (currentMonster == "fireGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmyfhurt)
+                    } else if (currentMonster == "waterGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmywhurt)
+                    } else if (currentMonster == "grassGremlin") {
+                        gremlinEnemy.setImageResource(R.drawable.gremmyghurt)
+                    } else if (currentMonster == "RestrainingOrder") {
+                        restrainingOrder.setImageResource(R.drawable.restrainhurt)
+                    }
+                }
+            }
+
+        }
+    }
+
+    private fun enemyTurn() {
+        if (enemyState == "Idle") {
+            enemyState = "Charged"
+            if (currentMonster == "neutralGhost") {
+                ghostEnemy.setImageResource(R.drawable.ghostncharge)
+                turnsTillAttack = 2
+            } else if (currentMonster == "fireGhost") {
+                ghostEnemy.setImageResource(R.drawable.ghostfcharge)
+                turnsTillAttack = 2
+            } else if (currentMonster == "waterGhost") {
+                ghostEnemy.setImageResource(R.drawable.ghostwcharge)
+                turnsTillAttack = 2
+            } else if (currentMonster == "grassGhost") {
+                ghostEnemy.setImageResource(R.drawable.ghostgcharge)
+                turnsTillAttack = 2
+            } else if (currentMonster == "neutralSkeleton") {
+                skeletonEnemy.setImageResource(R.drawable.skellyncharge)
+                turnsTillAttack = 3
+            } else if (currentMonster == "fireSkeleton") {
+                skeletonEnemy.setImageResource(R.drawable.skellyfcharge)
+                turnsTillAttack = 3
+            } else if (currentMonster == "waterSkeleton") {
+                skeletonEnemy.setImageResource(R.drawable.skellywcharge)
+                turnsTillAttack = 3
+            } else if (currentMonster == "grassSkeleton") {
+                skeletonEnemy.setImageResource(R.drawable.skellygcharge)
+                turnsTillAttack = 3
+            } else if (currentMonster == "neutralGremlin") {
+                gremlinEnemy.setImageResource(R.drawable.gremmyncharge)
+                turnsTillAttack = 4
+            } else if (currentMonster == "fireGremlin") {
+                gremlinEnemy.setImageResource(R.drawable.gremmyfcharge)
+                turnsTillAttack = 4
+            } else if (currentMonster == "waterGremlin") {
+                gremlinEnemy.setImageResource(R.drawable.gremmywcharge)
+                turnsTillAttack = 4
+            } else if (currentMonster == "grassGremlin") {
+                gremlinEnemy.setImageResource(R.drawable.gremmygcharge)
+                turnsTillAttack = 4
+            } else if (currentMonster == "neutralSpider") {
+                spiderEnemy.setImageResource(R.drawable.spiderncharge)
+                turnsTillAttack = 5
+            } else if (currentMonster == "fireSpider") {
+                spiderEnemy.setImageResource(R.drawable.spiderfcharge)
+                turnsTillAttack = 5
+            } else if (currentMonster == "waterSpider") {
+                spiderEnemy.setImageResource(R.drawable.spiderwcharge)
+                turnsTillAttack = 5
+            } else if (currentMonster == "grassSpider") {
+                spiderEnemy.setImageResource(R.drawable.spidergcharge)
+                turnsTillAttack = 5
+            } else if (currentMonster == "RestrainingOrder") {
+                restrainingOrder.setImageResource(R.drawable.restraincharge)
+                turnsTillAttack = 10
+            }
+
+            enemyState = "Charged"
+        } else if (enemyState == "Charged") {
+            if (turnsTillAttack > 1) {
+                turnsTillAttack -= 1
+            } else if (turnsTillAttack == 1) {
+                turnsTillAttack -= 0
+
+                if (currentMonster == "neutralGhost") {
+                    ghostEnemy.setImageResource(R.drawable.ghostnattack)
+
+                } else if (currentMonster == "fireGhost") {
+                    ghostEnemy.setImageResource(R.drawable.ghostfattack)
+
+                } else if (currentMonster == "waterGhost") {
+                    ghostEnemy.setImageResource(R.drawable.ghostwattack)
+
+                } else if (currentMonster == "grassGhost") {
+                    ghostEnemy.setImageResource(R.drawable.ghostgattack)
+
+                } else if (currentMonster == "neutralSkeleton") {
+                    skeletonEnemy.setImageResource(R.drawable.skellynattack)
+
+                } else if (currentMonster == "fireSkeleton") {
+                    skeletonEnemy.setImageResource(R.drawable.skellyfattack)
+
+                } else if (currentMonster == "waterSkeleton") {
+                    skeletonEnemy.setImageResource(R.drawable.skellywattack)
+
+                } else if (currentMonster == "grassSkeleton") {
+                    skeletonEnemy.setImageResource(R.drawable.skellygattack)
+
+                } else if (currentMonster == "neutralGremlin") {
+                    gremlinEnemy.setImageResource(R.drawable.gremmynattack)
+
+                } else if (currentMonster == "fireGremlin") {
+                    gremlinEnemy.setImageResource(R.drawable.gremmyfattack)
+
+                } else if (currentMonster == "waterGremlin") {
+                    gremlinEnemy.setImageResource(R.drawable.gremmywattack)
+
+                } else if (currentMonster == "grassGremlin") {
+                    gremlinEnemy.setImageResource(R.drawable.gremmygattack)
+
+                } else if (currentMonster == "neutralSpider") {
+                    spiderEnemy.setImageResource(R.drawable.spidernattack)
+
+                } else if (currentMonster == "fireSpider") {
+                    spiderEnemy.setImageResource(R.drawable.spiderfattack)
+
+                } else if (currentMonster == "waterSpider") {
+                    spiderEnemy.setImageResource(R.drawable.spiderwattack)
+
+                } else if (currentMonster == "grassSpider") {
+                    spiderEnemy.setImageResource(R.drawable.spidergattack)
+
+                } else if (currentMonster == "RestrainingOrder") {
+                    restrainingOrder.setImageResource(R.drawable.restrainattack)
+
+                }
+
+
+                enemyState = "Attack"
+                if (enemyElement == "Neutral" && element == "Neutral") {
+                    if (health > 1) {
+                        health -= 1
+                        healthText.text = "Health: $health/$healthMax"
+                    } else if (health <= 1) {
+                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                } else if (enemyElement == "Fire" && element == "Fire") {
+                    if (health > 1) {
+                        health -= 1
+                        healthText.text = "Health: $health/$healthMax"
+                    } else if (health <= 1) {
+                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                } else if (enemyElement == "Water" && element == "Water") {
+                    if (health > 1) {
+                        health -= 1
+                        healthText.text = "Health: $health/$healthMax"
+                    } else if (health <= 1) {
+                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                } else if (enemyElement == "Grass" && element == "Grass") {
+                    if (health > 1) {
+                        health -= 1
+                        healthText.text = "Health: $health/$healthMax"
+                    } else if (health <= 1) {
+                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                } else if (enemyElement == "Fire" && element == "Grass") {
+                    if (health > 3) {
+                        health -= 3
+                        healthText.text = "Health: $health/$healthMax"
+                    } else if (health <= 3) {
+                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                } else if (enemyElement == "Grass" && element == "Water") {
+                    if (health > 3) {
+                        health -= 3
+                        healthText.text = "Health: $health/$healthMax"
+                    } else if (health <= 3) {
+                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                } else if (enemyElement == "Water" && element == "Fire") {
+                    if (health > 3) {
+                        health -= 3
+                        healthText.text = "Health: $health/$healthMax"
+                    } else if (health <= 3) {
+                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                } else if (enemyElement == "Fire" && element == "Neutral") {
+                    if (health > 2) {
+                        health -= 2
+                        healthText.text = "Health: $health/$healthMax"
+                    } else if (health <= 2) {
+                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                } else if (enemyElement == "Water" && element == "Neutral") {
+                    if (health > 2) {
+                        health -= 2
+                        healthText.text = "Health: $health/$healthMax"
+                    } else if (health <= 2) {
+                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                } else if (enemyElement == "Grass" && element == "Neutral") {
+                    if (health > 2) {
+                        health -= 2
+                        healthText.text = "Health: $health/$healthMax"
+                    } else if (health <= 2) {
+                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                } else if (enemyElement == "Neutral" && element == "Fire") {
+                    if (health > 1) {
+                        health -= 1
+                        healthText.text = "Health: $health/$healthMax"
+                    } else if (health <= 1) {
+                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                } else if (enemyElement == "Neutral" && element == "Water") {
+                    if (health > 1) {
+                        health -= 1
+                        healthText.text = "Health: $health/$healthMax"
+                    } else if (health <= 1) {
+                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                } else if (enemyElement == "Neutral" && element == "Grass") {
+                    if (health > 1) {
+                        health -= 1
+                        healthText.text = "Health: $health/$healthMax"
+                    } else if (health <= 1) {
+                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                }
+            }
+
+        }
+    }
+
+
+    private fun dialogOn() {
+
+        //This will make things easier when you need to turn everything off for a dialog and reusable
+        attackselected
+        attackUnselected
+        blockUnselected
+        blockselected
+        itemsselected
+        itemsUnselected
+        magicselected
+        magicUnselected
+
+        healthPUnselected
+        healthPselected
+        confusePselected
+        confusePUnselected
+        chainselected
+        chainUnselected
+        manaPUnselected
+        manaPselected
+
+        healthPshopUnselected
+        healthPshopselected
+        confusePshopselected
+        confusePshopUnselected
+        chainshopselected
+        chainshopUnselected
+        manaPshopUnselected
+        manaPshopselected
+
+        fireselected
+        fireUnselected
+        waterselected
+        waterUnselected
+        grassselected
+        grassUnselected
+        neutralselected
+        neutralUnselected
+    }
+    private fun dialogOff() {
+
     }
 }
