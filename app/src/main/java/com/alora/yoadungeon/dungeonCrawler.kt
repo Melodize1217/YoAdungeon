@@ -8,8 +8,11 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import kotlin.random.Random
 
 class dungeonCrawler : AppCompatActivity() {
+
+    internal lateinit var randomRoom: ImageView
 
     internal lateinit var upButton: Button
     internal lateinit var leftButton: Button
@@ -88,12 +91,15 @@ class dungeonCrawler : AppCompatActivity() {
     var roomNumber = 1
     var nextRoomNumber = 2
     var currentMonster = "neutralGhost"
+    var currentSpecies = "Ghost"
     var currentRoom = 1
+    var randomMonsterNumber = 0
+
     var element = "Neutral"
     var health = 10
     var mana = 10
     var coins = 0
-    var keys = 0
+    var keys = 2
     var chainamount = 0
     var healthPamount = 0
     var manaPamount = 0
@@ -121,7 +127,15 @@ class dungeonCrawler : AppCompatActivity() {
     var dialogSetting = "Filler"
 
     var shopDebugCode = "Down"
-    var shopDebugActive = false
+
+    var shopIshere = false
+
+    var DropsNumber = 0
+
+   var  blockingIsActive = false
+
+    var isConfuseaActive = false
+    var confuseTurns = 0
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -199,6 +213,8 @@ class dungeonCrawler : AppCompatActivity() {
         healingtowerText = findViewById(R.id.healingtowerText)
 
         dialogue = findViewById(R.id.dialogue)
+
+        randomRoom = findViewById(R.id.randomRoom)
 
 
 
@@ -704,15 +720,50 @@ class dungeonCrawler : AppCompatActivity() {
                     selectedText = "Health"
                 } else if (selectedText == "Attack") {
                     attack()
-                    if (enemyState == "Idle") {
-                        textScreen = "Enemy Turn"
+                    if (enemyHealth > 0) {
+                        if (enemyState == "Idle") {
+                            textScreen = "EnemyTurn"
+                            dialogOn()
+                            dialogue.text = "Enemy Charges attack"
+                            dialogue.visibility = View.VISIBLE
+                        } else if (turnsTillAttack == 1) {
+                            textScreen = "EnemyTurn"
+                            dialogOn()
 
+                            dialogue.text = "Enemy attacks you"
+                            dialogue.visibility = View.VISIBLE
+                        } else if (turnsTillAttack > 1) {
+                            textScreen = "EnemyTurn"
+                            dialogOn()
+                            dialogue.text = "Enemy is charging for $turnsTillAttack turns"
+                            dialogue.visibility = View.VISIBLE
+                        }
+                        enemyTurn()
+                    } else {
+
+                        dialogOn()
+                        if (shopIshere == false) {
+                            textScreen = "EnemyDefeated"
+                            dialogue.text =
+                                "You defeated $currentMonster \n Push A to continue to next room"
+                            dialogue.visibility = View.VISIBLE
+
+
+                            enemyDrops()
+                        } else if (shopIshere == true) {
+                            textScreen = "Shop?"
+
+                            dialogue.text = "Push A to use one key to get into the shop \n Or Push B to go to the next room"
+                            dialogue.visibility = View.VISIBLE
+                            enemyDrops()
+                        }
                     }
-                    enemyTurn()
+
 
 
                     Toast.makeText(this, "You attack the enemy", Toast.LENGTH_SHORT).show()
                 } else if (selectedText == "Block") {
+                    blockSystem()
                     Toast.makeText(this, "You block this turn", Toast.LENGTH_SHORT).show()
                 }
             } else if (textScreen == "Shop?") {
@@ -764,6 +815,12 @@ class dungeonCrawler : AppCompatActivity() {
                         if (healthPamount > 0) {
                             healthPamount -= 1
                             health += 5
+
+                            enemyTurn()
+                            textScreen = "EnemyTurn"
+                            dialogOn()
+                            dialogue.text = "You took a health potion"
+                            dialogue.visibility = View.VISIBLE
                             if (health > healthMax) {
                                 health -= health - healthMax
                             }
@@ -779,6 +836,11 @@ class dungeonCrawler : AppCompatActivity() {
                         if (manaPamount > 0) {
                             manaPamount -= 1
                             mana += 5
+                            enemyTurn()
+                            textScreen = "EnemyTurn"
+                            dialogOn()
+                            dialogue.text = "You took a mana potion"
+                            dialogue.visibility = View.VISIBLE
                             if (mana > manaMax) {
                                 mana -= mana - manaMax
                             }
@@ -789,6 +851,29 @@ class dungeonCrawler : AppCompatActivity() {
                     } else {
                         Toast.makeText(this, "I don't think you wanna waste this", Toast.LENGTH_SHORT).show()
                     }
+                } else if (selectedText == "Confuse") {
+
+                        //This is a feature to be added if time allows it
+                        //RAHHHHHHHHHHHHHHHH
+                        if (confusePamount >= 1) {
+                            confusePamount -= 1
+                            isConfuseaActive = true
+                            confuseTurns = 5
+                            Toast.makeText(this, "This feature is not available and will be very soon \n just too lazy to go add it.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else if (selectedText == "Chain") {
+                    if (enemyState == "Charged") {
+                        if (chainamount >= 1) {
+                            chainamount -= 1
+                            turnsTillAttack += 3
+                            dialogOn()
+                            dialogue.text = "You chained the enemy"
+                            dialogue.visibility = View.VISIBLE
+                            enemyTurn()
+                        }
+                } else {
+                    Toast.makeText(this, "Hold off on this it only works \n if enemy is charged", Toast.LENGTH_SHORT).show()
                 }
             } else if (textScreen == "Element") {
                 if (selectedText == "Fire") {
@@ -798,6 +883,12 @@ class dungeonCrawler : AppCompatActivity() {
                         element = "Fire"
                         mana -= 5
                         manaText.text = "Mana: $mana/$manaMax"
+
+                        enemyTurn()
+                        textScreen = "EnemyTurn"
+                        dialogOn()
+                        dialogue.text = "You are a fire lord now"
+                        dialogue.visibility = View.VISIBLE
                     }
                 } else if (selectedText == "Water") {
                     if (mana >= 5) {
@@ -806,6 +897,12 @@ class dungeonCrawler : AppCompatActivity() {
                         element = "Water"
                         mana -= 5
                         manaText.text = "Mana: $mana/$manaMax"
+
+                        enemyTurn()
+                        textScreen = "EnemyTurn"
+                        dialogOn()
+                        dialogue.text = "You are a water saint now"
+                        dialogue.visibility = View.VISIBLE
                     }
                 } else if (selectedText == "Grass") {
                     if (mana >= 5) {
@@ -814,16 +911,63 @@ class dungeonCrawler : AppCompatActivity() {
                         element = "Grass"
                         mana -= 5
                         manaText.text = "Mana: $mana/$manaMax"
+
+                        enemyTurn()
+                        textScreen = "EnemyTurn"
+                        dialogOn()
+                        dialogue.text = "You are a grass monk now"
+                        dialogue.visibility = View.VISIBLE
                     }
                 } else if (selectedText == "Neutral") {
-                    if (mana >= 5) {
+                    if (mana >= 0) {
                         elementChosen.setImageResource(R.drawable.neutralelement)
                         swordshield.setImageResource(R.drawable.neutral)
                         element = "Neutral"
-                        mana -= 5
+                        mana -= 0
                         manaText.text = "Mana: $mana/$manaMax"
+
+                        enemyTurn()
+                        textScreen = "EnemyTurn"
+                        dialogOn()
+                        dialogue.text = "Well, You are you \n And that will be enough \n At least to me"
+                        dialogue.visibility = View.VISIBLE
                     }
                 }
+            } else if (textScreen == "EnemyTurn") {
+                dialogue.visibility = View.GONE
+
+                dialogOff()
+
+                turn += 1
+
+
+            } else if (textScreen == "EnemyDefeated") {
+                dialogue.visibility = View.GONE
+                attackselected.visibility = View.VISIBLE
+                magicUnselected.visibility = View.VISIBLE
+                itemsUnselected.visibility = View.VISIBLE
+                blockUnselected.visibility = View.VISIBLE
+                selectedText = "Attack"
+                textScreen = "Base"
+                when (currentMonster) {
+                    "Ghost" -> {
+                        ghostEnemy.visibility =View.GONE
+                    }
+                    "Skeleton" -> {
+                        skeletonEnemy.visibility =View.GONE
+                    }
+                    "Spider" -> {
+                        spiderEnemy.visibility =View.GONE
+                    }
+                    "Gremlin" -> {
+                        gremlinEnemy.visibility =View.GONE
+                    }
+                    "Restrain" -> {
+                        restrainingOrder.visibility =View.GONE
+                    }
+                }
+
+                nextRoomGeneration()
             }
 
             if (shopDebugCode == "A") {
@@ -949,6 +1093,9 @@ class dungeonCrawler : AppCompatActivity() {
                     enemyHealth -= 1
                 } else if (enemyHealth == 1) {
                     enemyHealth = 0
+
+
+
                     if (currentMonster == "neutralGhost") {
                         ghostEnemy.setImageResource(R.drawable.ghostnhurt)
                     } else if (currentMonster == "fireGhost") {
@@ -1724,6 +1871,7 @@ class dungeonCrawler : AppCompatActivity() {
 
                 enemyState = "Attack"
                 if (enemyElement == "Neutral" && element == "Neutral") {
+                    if (blockingIsActive == false) {
                     if (health > 1) {
                         health -= 1
                         healthText.text = "Health: $health/$healthMax"
@@ -1732,117 +1880,205 @@ class dungeonCrawler : AppCompatActivity() {
                         startActivity(intent)
                         finish()
                     }
+                        }
                 } else if (enemyElement == "Fire" && element == "Fire") {
-                    if (health > 1) {
-                        health -= 1
-                        healthText.text = "Health: $health/$healthMax"
-                    } else if (health <= 1) {
-                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
-                        startActivity(intent)
-                        finish()
+                    if (blockingIsActive == false) {
+                        if (health > 1) {
+                            health -= 1
+                            healthText.text = "Health: $health/$healthMax"
+                        } else if (health <= 1) {
+                            val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
                     }
+
                 } else if (enemyElement == "Water" && element == "Water") {
-                    if (health > 1) {
-                        health -= 1
-                        healthText.text = "Health: $health/$healthMax"
-                    } else if (health <= 1) {
-                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
-                        startActivity(intent)
-                        finish()
+                    if (blockingIsActive == false) {
+                        if (health > 1) {
+                            health -= 1
+                            healthText.text = "Health: $health/$healthMax"
+                        } else if (health <= 1) {
+                            val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
                     }
+
                 } else if (enemyElement == "Grass" && element == "Grass") {
-                    if (health > 1) {
-                        health -= 1
-                        healthText.text = "Health: $health/$healthMax"
-                    } else if (health <= 1) {
-                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
-                        startActivity(intent)
-                        finish()
+                    if (blockingIsActive == false) {
+                        if (health > 1) {
+                            health -= 1
+                            healthText.text = "Health: $health/$healthMax"
+                        } else if (health <= 1) {
+                            val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
                     }
+
                 } else if (enemyElement == "Fire" && element == "Grass") {
-                    if (health > 3) {
-                        health -= 3
-                        healthText.text = "Health: $health/$healthMax"
-                    } else if (health <= 3) {
-                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
-                        startActivity(intent)
-                        finish()
+                    if (blockingIsActive == false) {
+                        if (health > 3) {
+                            health -= 3
+                            healthText.text = "Health: $health/$healthMax"
+                        } else if (health <= 3) {
+                            val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
                     }
+
                 } else if (enemyElement == "Grass" && element == "Water") {
-                    if (health > 3) {
-                        health -= 3
-                        healthText.text = "Health: $health/$healthMax"
-                    } else if (health <= 3) {
-                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
-                        startActivity(intent)
-                        finish()
+                    if (blockingIsActive == false) {
+                        if (health > 3) {
+                            health -= 3
+                            healthText.text = "Health: $health/$healthMax"
+                        } else if (health <= 3) {
+                            val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
                     }
+
                 } else if (enemyElement == "Water" && element == "Fire") {
-                    if (health > 3) {
-                        health -= 3
-                        healthText.text = "Health: $health/$healthMax"
-                    } else if (health <= 3) {
-                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
-                        startActivity(intent)
-                        finish()
+
+                        if (blockingIsActive == false) {
+                            if (health > 3) {
+                            health -= 3
+                            healthText.text = "Health: $health/$healthMax"
+                        } else if (health <= 3) {
+                            val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
                     }
                 } else if (enemyElement == "Fire" && element == "Neutral") {
-                    if (health > 2) {
-                        health -= 2
-                        healthText.text = "Health: $health/$healthMax"
-                    } else if (health <= 2) {
-                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
-                        startActivity(intent)
-                        finish()
+                    if (blockingIsActive == false) {
+                        if (health > 2) {
+                            health -= 2
+                            healthText.text = "Health: $health/$healthMax"
+                        } else if (health <= 2) {
+                            val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
                     }
                 } else if (enemyElement == "Water" && element == "Neutral") {
-                    if (health > 2) {
-                        health -= 2
-                        healthText.text = "Health: $health/$healthMax"
-                    } else if (health <= 2) {
-                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
-                        startActivity(intent)
-                        finish()
+                    if (blockingIsActive == false) {
+                        if (health > 2) {
+                            health -= 2
+                            healthText.text = "Health: $health/$healthMax"
+                        } else if (health <= 2) {
+                            val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
                     }
                 } else if (enemyElement == "Grass" && element == "Neutral") {
-                    if (health > 2) {
-                        health -= 2
-                        healthText.text = "Health: $health/$healthMax"
-                    } else if (health <= 2) {
-                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
-                        startActivity(intent)
-                        finish()
+                    if (blockingIsActive == false) {
+                        if (health > 2) {
+                            health -= 2
+                            healthText.text = "Health: $health/$healthMax"
+                        } else if (health <= 2) {
+                            val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
                     }
+
                 } else if (enemyElement == "Neutral" && element == "Fire") {
-                    if (health > 1) {
-                        health -= 1
-                        healthText.text = "Health: $health/$healthMax"
-                    } else if (health <= 1) {
-                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
-                        startActivity(intent)
-                        finish()
+                    if (blockingIsActive == false) {
+                        if (health > 1) {
+                            health -= 1
+                            healthText.text = "Health: $health/$healthMax"
+                        } else if (health <= 1) {
+                            val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
                     }
+
                 } else if (enemyElement == "Neutral" && element == "Water") {
-                    if (health > 1) {
-                        health -= 1
-                        healthText.text = "Health: $health/$healthMax"
-                    } else if (health <= 1) {
-                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
-                        startActivity(intent)
-                        finish()
+                    if (blockingIsActive == false) {
+                        if (health > 1) {
+                            health -= 1
+                            healthText.text = "Health: $health/$healthMax"
+                        } else if (health <= 1) {
+                            val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
                     }
                 } else if (enemyElement == "Neutral" && element == "Grass") {
-                    if (health > 1) {
-                        health -= 1
-                        healthText.text = "Health: $health/$healthMax"
-                    } else if (health <= 1) {
-                        val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
-                        startActivity(intent)
-                        finish()
+                    if (blockingIsActive == false) {
+                        if (health > 1) {
+                            health -= 1
+                            healthText.text = "Health: $health/$healthMax"
+                        } else if (health <= 1) {
+                            val intent = Intent(this@dungeonCrawler, DeathScreen::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
                     }
                 }
             }
 
+        } else if (enemyState == "Attack") {
+            enemyState = "Idle"
+            when (currentMonster) {
+                "neutralGhost" -> {
+                    ghostEnemy.setImageResource(R.drawable.ghostnidle)
+                }
+                "fireGhost" -> {
+                    ghostEnemy.setImageResource(R.drawable.ghostfidle)
+                }
+                "grassGhost" -> {
+                    ghostEnemy.setImageResource(R.drawable.ghostgidle)
+                }
+                "waterGhost" -> {
+                    ghostEnemy.setImageResource(R.drawable.ghostwidle)
+                }
+                "neutralSkeleton" -> {
+                    skeletonEnemy.setImageResource(R.drawable.skellynidle)
+                }
+                "fireSkeleton" -> {
+                    skeletonEnemy.setImageResource(R.drawable.skellyfidle)
+                }
+                "grassSkeleton" -> {
+                    skeletonEnemy.setImageResource(R.drawable.skellygidle)
+                }
+                "waterSkeleton" -> {
+                    skeletonEnemy.setImageResource(R.drawable.skellywidle)
+                }
+                "neutralGremlin" -> {
+                    gremlinEnemy.setImageResource(R.drawable.gremmynidle)
+                }
+                "fireGremlin" -> {
+                    gremlinEnemy.setImageResource(R.drawable.gremmyfidle)
+                }
+                "grassGremlin" -> {
+                    gremlinEnemy.setImageResource(R.drawable.gremmygidle)
+                }
+                "waterGremlin" -> {
+                    gremlinEnemy.setImageResource(R.drawable.gremmywidle)
+                }
+                "neutralSpider" -> {
+                    spiderEnemy.setImageResource(R.drawable.spidernidle)
+                }
+                "fireSpider" -> {
+                    spiderEnemy.setImageResource(R.drawable.spiderfidle)
+                }
+                "grassSpider" -> {
+                    spiderEnemy.setImageResource(R.drawable.spidergidle)
+                }
+                "waterSpider" -> {
+                    spiderEnemy.setImageResource(R.drawable.spiderwidle)
+                }
+                "restrainingOrder" -> {
+                    restrainingOrder.setImageResource(R.drawable.restrainidle)
+                }
+            }
         }
     }
 
@@ -1850,43 +2086,351 @@ class dungeonCrawler : AppCompatActivity() {
     private fun dialogOn() {
 
         //This will make things easier when you need to turn everything off for a dialog and reusable
-        attackselected
-        attackUnselected
-        blockUnselected
-        blockselected
-        itemsselected
-        itemsUnselected
-        magicselected
-        magicUnselected
+        attackselected.visibility = View.GONE
+        attackUnselected.visibility = View.GONE
+        blockUnselected.visibility = View.GONE
+        blockselected.visibility = View.GONE
+        itemsselected.visibility = View.GONE
+        itemsUnselected.visibility = View.GONE
+        magicselected.visibility = View.GONE
+        magicUnselected.visibility = View.GONE
 
-        healthPUnselected
-        healthPselected
-        confusePselected
-        confusePUnselected
-        chainselected
-        chainUnselected
-        manaPUnselected
-        manaPselected
+        healthPUnselected.visibility = View.GONE
+        healthPselected.visibility = View.GONE
+        confusePselected.visibility = View.GONE
+        confusePUnselected.visibility = View.GONE
+        chainselected.visibility = View.GONE
+        chainUnselected.visibility = View.GONE
+        manaPUnselected.visibility = View.GONE
+        manaPselected.visibility = View.GONE
 
-        healthPshopUnselected
-        healthPshopselected
-        confusePshopselected
-        confusePshopUnselected
-        chainshopselected
-        chainshopUnselected
-        manaPshopUnselected
-        manaPshopselected
+        healthPshopUnselected.visibility = View.GONE
+        healthPshopselected.visibility = View.GONE
+        confusePshopselected.visibility = View.GONE
+        confusePshopUnselected.visibility = View.GONE
+        chainshopselected.visibility = View.GONE
+        chainshopUnselected.visibility = View.GONE
+        manaPshopUnselected.visibility = View.GONE
+        manaPshopselected.visibility = View.GONE
 
-        fireselected
-        fireUnselected
-        waterselected
-        waterUnselected
-        grassselected
-        grassUnselected
-        neutralselected
-        neutralUnselected
+        fireselected.visibility = View.GONE
+        fireUnselected.visibility = View.GONE
+        waterselected.visibility = View.GONE
+        waterUnselected.visibility = View.GONE
+        grassselected.visibility = View.GONE
+        grassUnselected.visibility = View.GONE
+        neutralselected.visibility = View.GONE
+        neutralUnselected.visibility = View.GONE
     }
     private fun dialogOff() {
+        textScreen = "Base"
+        selectedText = "Attack"
+        attackselected.visibility = View.VISIBLE
+        magicUnselected.visibility = View.VISIBLE
+        itemsUnselected.visibility = View.VISIBLE
+        blockUnselected.visibility = View.VISIBLE
+    }
+
+
+    private fun enemyDrops() {
+        DropsNumber = Random.nextInt(1,6)
+
+
+        when (DropsNumber) {
+            1 -> {
+                coins += 1
+                cointotalText.text = "Coins: $coins"
+            }
+            2 -> {
+                coins += 2
+                cointotalText.text = "Coins: $coins"
+            }
+            3 -> {
+                coins += 3
+                cointotalText.text = "Coins: $coins"
+            }
+            4 -> {
+                keys += 1
+                coins += 2
+                keytotalText.text = "Keys: $keys"
+                cointotalText.text = "Coins: $coins"
+            }
+            5 -> {
+                keys += 1
+                keytotalText.text = "Keys: $keys"
+            }
+            6 -> {
+                keys += 2
+                keytotalText.text = "Keys: $keys"
+            }
+        }
 
     }
+
+    private fun blockSystem() {
+        blockingIsActive = true
+        enemyTurn()
+        dialogOn()
+        dialogue.text = "You blocked this turn"
+        textScreen = "EnemyTurn"
+        dialogue.visibility = View.VISIBLE
+    }
+
+private fun nextRoomGeneration() {
+    if (roomNumber + 1 == 10) {
+        randomRoom.setImageResource(R.drawable.sanctuary)
+
+        dialogOn()
+        dialogue.text = "Push A for a blessing"
+        dialogue.visibility = View.VISIBLE
+        textScreen = "Sanctuary"
+
+    } else if (roomNumber + 1 == 20) {
+        randomRoom.setImageResource(R.drawable.sanctuary)
+        dialogOn()
+        dialogue.text = "Push A for a blessing"
+        dialogue.visibility = View.VISIBLE
+        textScreen = "Sanctuary"
+    } else if (roomNumber + 1 == 30) {
+        randomRoom.setImageResource(R.drawable.sanctuary)
+        dialogOn()
+        dialogue.text = "Push A for a blessing"
+        dialogue.visibility = View.VISIBLE
+        textScreen = "Sanctuary"
+        } else if (roomNumber + 1 == 30) {
+        randomRoom.setImageResource(R.drawable.sanctuary)
+        dialogOn()
+        dialogue.text = "Push A for a blessing"
+        dialogue.visibility = View.VISIBLE
+        textScreen = "Sanctuary"
+    } else if (roomNumber + 1 == 40) {
+        randomRoom.setImageResource(R.drawable.sanctuary)
+        dialogOn()
+        dialogue.text = "Push A for a blessing"
+        dialogue.visibility = View.VISIBLE
+        textScreen = "Sanctuary"
+    } else if (roomNumber + 1 == 50) {
+        randomRoom.setImageResource(R.drawable.sanctuary)
+        dialogOn()
+        dialogue.text = "Push A for a blessing"
+        dialogue.visibility = View.VISIBLE
+        textScreen = "Sanctuary"
+    }else if (roomNumber + 1 == 60) {
+        randomRoom.setImageResource(R.drawable.sanctuary)
+        dialogOn()
+        dialogue.text = "Push A for a blessing"
+        dialogue.visibility = View.VISIBLE
+        textScreen = "Sanctuary"
+    }else if (roomNumber + 1 == 70) {
+        randomRoom.setImageResource(R.drawable.sanctuary)
+        dialogOn()
+        dialogue.text = "Push A for a blessing"
+        dialogue.visibility = View.VISIBLE
+        textScreen = "Sanctuary"
+    }else if (roomNumber + 1 == 80) {
+        randomRoom.setImageResource(R.drawable.sanctuary)
+        dialogOn()
+        dialogue.text = "Push A for a blessing"
+        dialogue.visibility = View.VISIBLE
+        textScreen = "Sanctuary"
+    }else if (roomNumber + 1 == 90) {
+        randomRoom.setImageResource(R.drawable.sanctuary)
+        dialogOn()
+        dialogue.text = "Push A for a blessing"
+        dialogue.visibility = View.VISIBLE
+        textScreen = "Sanctuary"
+    } else if (roomNumber + 1 == 100) {
+        randomRoom.setImageResource(R.drawable.sanctuary)
+        dialogOn()
+        dialogue.text = "Push A for a blessing"
+        dialogue.visibility = View.VISIBLE
+        textScreen = "Sanctuary"
+    } else {
+        nextRoomNumber = Random.nextInt(1, 5)
+
+        when (nextRoomNumber) {
+            1 -> {
+                randomRoom.setImageResource(R.drawable.roomone)
+            }
+
+            2 -> {
+                randomRoom.setImageResource(R.drawable.roomtwo)
+            }
+
+            3 -> {
+                randomRoom.setImageResource(R.drawable.roomthree)
+            }
+
+            4 -> {
+                randomRoom.setImageResource(R.drawable.roomfour)
+            }
+
+            5 -> {
+                randomRoom.setImageResource(R.drawable.roomfive)
+            }
+        }
+
+        roomNumber += 1
+
+
+        randomMonsterNumber = Random.nextInt(1,17)
+
+        when (randomMonsterNumber) {
+            1 -> {
+                currentMonster = "neutralGhost"
+                currentSpecies = "Ghost"
+                enemyHealth = roomNumber + 1
+                enemyElement = "Neutral"
+                enemyState = "Idle"
+                ghostEnemy.setImageResource(R.drawable.ghostnidle)
+                ghostEnemy.visibility = View.VISIBLE
+            }
+            2 -> {
+                currentMonster = "fireGhost"
+                currentSpecies = "Ghost"
+                enemyHealth = roomNumber + 1
+                enemyElement = "Fire"
+                enemyState = "Idle"
+                ghostEnemy.setImageResource(R.drawable.ghostfidle)
+                ghostEnemy.visibility = View.VISIBLE
+            }
+            3 -> {
+                currentMonster = "waterGhost"
+                currentSpecies = "Ghost"
+                enemyHealth = roomNumber + 1
+                enemyElement = "Water"
+                enemyState = "Idle"
+                ghostEnemy.setImageResource(R.drawable.ghostwidle)
+                ghostEnemy.visibility = View.VISIBLE
+            }
+            4 -> {
+                currentMonster = "grassGhost"
+                currentSpecies = "Ghost"
+                enemyHealth = roomNumber + 1
+                enemyElement = "Grass"
+                enemyState = "Idle"
+                ghostEnemy.setImageResource(R.drawable.ghostgidle)
+                ghostEnemy.visibility = View.VISIBLE
+            }
+            5 -> {
+                currentMonster = "neutralSkeleton"
+                currentSpecies = "Skeleton"
+                enemyHealth = roomNumber + 1
+                enemyElement = "Neutral"
+                enemyState = "Idle"
+                skeletonEnemy.setImageResource(R.drawable.skellynidle)
+                skeletonEnemy.visibility = View.VISIBLE
+            }
+            6 -> {
+                currentMonster = "fireSkeleton"
+                currentSpecies = "Skeleton"
+                enemyHealth = roomNumber + 1
+                enemyElement = "Fire"
+                enemyState = "Idle"
+                skeletonEnemy.setImageResource(R.drawable.skellyfidle)
+                skeletonEnemy.visibility = View.VISIBLE
+            }
+            7 -> {
+                currentMonster = "waterSkeleton"
+                currentSpecies = "Skeleton"
+                enemyHealth = roomNumber + 1
+                enemyElement = "Water"
+                enemyState = "Idle"
+                skeletonEnemy.setImageResource(R.drawable.skellywidle)
+                skeletonEnemy.visibility = View.VISIBLE
+            }
+            8 -> {
+                currentMonster = "grassSkeleton"
+                currentSpecies = "Skeleton"
+                enemyHealth = roomNumber + 1
+                enemyElement = "Grass"
+                enemyState = "Idle"
+                skeletonEnemy.setImageResource(R.drawable.skellygidle)
+                skeletonEnemy.visibility = View.VISIBLE
+            }
+            9 -> {
+                currentMonster = "neutralGremlin"
+                currentSpecies = "Gremlin"
+                enemyHealth = roomNumber + 1
+                enemyElement = "Neutral"
+                enemyState = "Idle"
+                gremlinEnemy.setImageResource(R.drawable.gremmynidle)
+                gremlinEnemy.visibility = View.VISIBLE
+            }
+            10 -> {
+                currentMonster = "fireGremlin"
+                currentSpecies = "Gremlin"
+                enemyHealth = roomNumber + 1
+                enemyElement = "Fire"
+                enemyState = "Idle"
+                gremlinEnemy.setImageResource(R.drawable.gremmyfidle)
+                gremlinEnemy.visibility = View.VISIBLE
+            }
+            11 -> {
+                currentMonster = "waterGremlin"
+                currentSpecies = "Gremlin"
+                enemyHealth = roomNumber + 1
+                enemyElement = "Water"
+                enemyState = "Idle"
+                gremlinEnemy.setImageResource(R.drawable.gremmywidle)
+                gremlinEnemy.visibility = View.VISIBLE
+            }
+            12 -> {
+                currentMonster = "grassGremlin"
+                currentSpecies = "Gremlin"
+                enemyHealth = roomNumber + 1
+                enemyElement = "Grass"
+                enemyState = "Idle"
+                gremlinEnemy.setImageResource(R.drawable.gremmygidle)
+                gremlinEnemy.visibility = View.VISIBLE
+            }
+            13 -> {
+                currentMonster = "neutralSpider"
+                currentSpecies = "Spider"
+                enemyHealth = roomNumber + 1
+                enemyElement = "Neutral"
+                enemyState = "Idle"
+                spiderEnemy.setImageResource(R.drawable.spidernidle)
+                spiderEnemy.visibility = View.VISIBLE
+            }
+            14 -> {
+                currentMonster = "fireSpider"
+                currentSpecies = "Spider"
+                enemyHealth = roomNumber + 1
+                enemyElement = "Fire"
+                enemyState = "Idle"
+                spiderEnemy.setImageResource(R.drawable.spiderfidle)
+                spiderEnemy.visibility = View.VISIBLE
+            }
+            15 -> {
+                currentMonster = "waterSpider"
+                currentSpecies = "Spider"
+                enemyHealth = roomNumber + 1
+                enemyElement = "Water"
+                enemyState = "Idle"
+                spiderEnemy.setImageResource(R.drawable.spiderwidle)
+                spiderEnemy.visibility = View.VISIBLE
+            }
+            16 -> {
+                currentMonster = "grassSpider"
+                currentSpecies = "Spider"
+                enemyHealth = roomNumber + 1
+                enemyElement = "Grass"
+                enemyState = "Idle"
+                spiderEnemy.setImageResource(R.drawable.spidergidle)
+                spiderEnemy.visibility = View.VISIBLE
+            }
+            17 -> {
+                currentMonster = "restrainingOrder"
+                currentSpecies = "Restrain"
+                enemyHealth = roomNumber + 1
+                enemyElement = "Neutral"
+                enemyState = "Idle"
+                restrainingOrder.setImageResource(R.drawable.restrainidle)
+                restrainingOrder.visibility = View.VISIBLE
+            }
+        }
+    }
+}
+
 }
