@@ -99,16 +99,13 @@ class dungeonCrawler : AppCompatActivity() {
     var health = 10
     var mana = 10
     var coins = 0
-    var keys = 2
+    var keys = 0
     var chainamount = 0
     var healthPamount = 0
     var manaPamount = 0
     var confusePamount = 0
     var enemyHealth = 2
-    var damage = 1
-    var defense = 1
-    var enemyDamage = 1
-    var enemyDefense = 1
+
     var enemyElement = "Neutral"
     var selectedText = "Attack"
     var textScreen = "Base"
@@ -128,6 +125,8 @@ class dungeonCrawler : AppCompatActivity() {
 
     var shopDebugCode = "Down"
 
+    var invincibilityCode = "Left1"
+
     var shopIshere = false
 
     var DropsNumber = 0
@@ -136,6 +135,12 @@ class dungeonCrawler : AppCompatActivity() {
 
     var isConfuseaActive = false
     var confuseTurns = 0
+
+    var shopChance = 0
+
+    var isBlockDebugActive = false
+
+    var sanctuaryCalculation = 0
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -335,6 +340,14 @@ class dungeonCrawler : AppCompatActivity() {
             } else {
                 shopDebugCode = "Down"
             }
+
+            if (invincibilityCode == "Up1") {
+                invincibilityCode = "Down1"
+            } else if (invincibilityCode == "Up2") {
+                invincibilityCode = "Down2"
+            } else {
+                invincibilityCode = "Right1"
+            }
         }
         leftButton.setOnClickListener {
             if (textScreen == "Base") {
@@ -451,6 +464,14 @@ class dungeonCrawler : AppCompatActivity() {
             } else {
                 shopDebugCode = "Down"
             }
+
+            if (invincibilityCode == "Right1") {
+                invincibilityCode = "Right2"
+            } else if (invincibilityCode == "Right2") {
+                invincibilityCode = "Left1"
+            } else {
+                invincibilityCode = "Right1"
+            }
         }
         downButton.setOnClickListener {
             if (textScreen == "Base") {
@@ -565,6 +586,14 @@ class dungeonCrawler : AppCompatActivity() {
 
             if (shopDebugCode == "Down") {
                 shopDebugCode = "Left"
+            }
+
+            if (invincibilityCode == "Down1") {
+                invincibilityCode = "Up2"
+            } else if (invincibilityCode == "Down2") {
+                invincibilityCode = "B"
+            } else {
+                invincibilityCode = "Right1"
             }
         }
         rightButton.setOnClickListener {
@@ -683,6 +712,14 @@ class dungeonCrawler : AppCompatActivity() {
             } else {
                 shopDebugCode = "Down"
             }
+
+            if (invincibilityCode == "Left1") {
+                invincibilityCode = "Left2"
+            } else if (invincibilityCode == "Left2") {
+                invincibilityCode = "Up1"
+            } else {
+                invincibilityCode = "Right1"
+            }
         }
         aButton.setOnClickListener {
             if (textScreen == "Base") {
@@ -776,6 +813,16 @@ class dungeonCrawler : AppCompatActivity() {
                     keys -= 1
                     textScreen = "Shop"
                     selectedText = "HealthShop"
+
+                    keytotalText.text = "Keys: $keys"
+
+                    ghostEnemy.visibility = View.GONE
+                    gremlinEnemy.visibility = View.GONE
+                    spiderEnemy.visibility = View.GONE
+                    skeletonEnemy.visibility = View.GONE
+                    restrainingOrder.visibility = View.GONE
+
+                    shopKeeper.visibility = View.VISIBLE
                 } else {
                     Toast.makeText(this, "Oof no keys guess you gotta say no", Toast.LENGTH_SHORT).show()
                 }
@@ -784,6 +831,8 @@ class dungeonCrawler : AppCompatActivity() {
                     if (coins >= 3) {
                         healthPamount += 1
                         coins -= 3
+                        cointotalText.text = "Coin: $coins"
+
                     } else {
                         Toast.makeText(this, "Damn guess you poor as heck", Toast.LENGTH_SHORT).show()
                     }
@@ -791,6 +840,7 @@ class dungeonCrawler : AppCompatActivity() {
                     if (coins >= 5) {
                         manaPamount += 1
                         coins -= 5
+                        cointotalText.text = "Coin: $coins"
                     } else {
                         Toast.makeText(this, "Damn guess you poor as heck", Toast.LENGTH_SHORT).show()
 
@@ -798,6 +848,7 @@ class dungeonCrawler : AppCompatActivity() {
                     if (coins >= 7) {
                         confusePamount += 1
                         coins -= 7
+                        cointotalText.text = "Coin: $coins"
                     } else {
                         Toast.makeText(this, "Damn guess you poor as heck", Toast.LENGTH_SHORT).show()
 
@@ -805,6 +856,7 @@ class dungeonCrawler : AppCompatActivity() {
                     if (coins >= 10) {
                         chainamount += 1
                         coins -= 10
+                        cointotalText.text = "Coin: $coins"
                     } else {
                         Toast.makeText(this, "Damn guess you poor as heck", Toast.LENGTH_SHORT).show()
                     }
@@ -935,7 +987,9 @@ class dungeonCrawler : AppCompatActivity() {
                 }
             } else if (textScreen == "EnemyTurn") {
                 dialogue.visibility = View.GONE
-
+                if (isBlockDebugActive == false) {
+                    blockingIsActive = false
+                }
                 dialogOff()
 
                 turn += 1
@@ -949,25 +1003,16 @@ class dungeonCrawler : AppCompatActivity() {
                 blockUnselected.visibility = View.VISIBLE
                 selectedText = "Attack"
                 textScreen = "Base"
-                when (currentMonster) {
-                    "Ghost" -> {
-                        ghostEnemy.visibility =View.GONE
-                    }
-                    "Skeleton" -> {
-                        skeletonEnemy.visibility =View.GONE
-                    }
-                    "Spider" -> {
-                        spiderEnemy.visibility =View.GONE
-                    }
-                    "Gremlin" -> {
-                        gremlinEnemy.visibility =View.GONE
-                    }
-                    "Restrain" -> {
-                        restrainingOrder.visibility =View.GONE
-                    }
-                }
+
 
                 nextRoomGeneration()
+            } else if (textScreen == "Sanctuary") {
+
+                santuaryHealth()
+                dialogOff()
+                nextRoomGeneration()
+
+
             }
 
             if (shopDebugCode == "A") {
@@ -1008,6 +1053,19 @@ class dungeonCrawler : AppCompatActivity() {
 
             } else {
                 shopDebugCode = "Down"
+            }
+
+            if (invincibilityCode == "A") {
+                invincibilityCode = "Right1"
+                if (isBlockDebugActive == false) {
+                    Toast.makeText(this, "You have become immortal", Toast.LENGTH_SHORT).show()
+                    isBlockDebugActive = true
+                } else {
+                    Toast.makeText(this, "You have become mortal", Toast.LENGTH_SHORT).show()
+                    isBlockDebugActive = false
+                }
+            } else {
+                invincibilityCode = "Right1"
             }
         }
         bButton.setOnClickListener {
@@ -1054,10 +1112,14 @@ class dungeonCrawler : AppCompatActivity() {
                 textScreen = "Base"
                 selectedText = "Attack"
 
+                nextRoomGeneration()
+
 
                 //Go back to random room in queue
             } else if (textScreen == "Shop") {
                 //This should go to the next random room in the queue
+
+                shopKeeper.visibility = View.GONE
 
                 magicUnselected.visibility = View.VISIBLE
                 itemsUnselected.visibility = View.VISIBLE
@@ -1076,12 +1138,19 @@ class dungeonCrawler : AppCompatActivity() {
                 textScreen = "Base"
                 selectedText = "Attack"
 
+                nextRoomGeneration()
             }
 
             if (shopDebugCode == "B") {
                 shopDebugCode = "A"
             } else {
                 shopDebugCode = "Down"
+            }
+
+            if (invincibilityCode == "B") {
+                invincibilityCode = "A"
+            } else {
+                invincibilityCode = "Right1"
             }
         }
     }
@@ -1752,6 +1821,21 @@ class dungeonCrawler : AppCompatActivity() {
         }
     }
 
+
+    private fun santuaryHealth() {
+        healthMax += 10
+        manaMax += 10
+        health = healthMax
+        mana = manaMax
+        healthText.text = "Health: $health/$healthMax"
+        manaText.text = "Mana: $mana/$manaMax"
+
+        healthTower.visibility = View.GONE
+        dialogue.visibility = View.GONE
+
+
+
+    }
     private fun enemyTurn() {
         if (enemyState == "Idle") {
             enemyState = "Charged"
@@ -2177,75 +2261,192 @@ class dungeonCrawler : AppCompatActivity() {
     }
 
 private fun nextRoomGeneration() {
-    if (roomNumber + 1 == 10) {
+    if (currentMonster == "neutralGhost" || currentMonster == "fireGhost"|| currentMonster == "waterGhost"|| currentMonster == "grassGhost") {
+        ghostEnemy.visibility = View.GONE
+    } else if (currentMonster == "neutralSkeleton" || currentMonster == "fireSkeleton"|| currentMonster == "waterSkeleton"|| currentMonster == "grassSkeleton") {
+        skeletonEnemy.visibility = View.GONE
+    }else if (currentMonster == "neutralSpider" || currentMonster == "fireSpider"|| currentMonster == "waterSpider"|| currentMonster == "grassSpider") {
+        spiderEnemy.visibility = View.GONE
+    } else if (currentMonster == "neutralGremlin" || currentMonster == "fireGremlin"|| currentMonster == "waterGremlin"|| currentMonster == "grassGremlin") {
+        gremlinEnemy.visibility = View.GONE
+    } else if (currentMonster == "restraingOrder") {
+        restrainingOrder.visibility = View.GONE
+    }
+
+sanctuaryCalculation = roomNumber + 1
+
+
+    if (sanctuaryCalculation == 10) {
         randomRoom.setImageResource(R.drawable.sanctuary)
 
         dialogOn()
         dialogue.text = "Push A for a blessing"
         dialogue.visibility = View.VISIBLE
+        gremlinEnemy.visibility = View.GONE
+        ghostEnemy.visibility = View.GONE
+        skeletonEnemy.visibility = View.GONE
+        spiderEnemy.visibility = View.GONE
+        restrainingOrder.visibility = View.GONE
+        shopKeeper.visibility = View.GONE
+        healthTower.visibility = View.VISIBLE
         textScreen = "Sanctuary"
+        roomNumber += 1
+        roomText.text = "Room: \n $roomNumber"
 
-    } else if (roomNumber + 1 == 20) {
+    } else if (sanctuaryCalculation == 20) {
         randomRoom.setImageResource(R.drawable.sanctuary)
         dialogOn()
         dialogue.text = "Push A for a blessing"
         dialogue.visibility = View.VISIBLE
+        gremlinEnemy.visibility = View.GONE
+        ghostEnemy.visibility = View.GONE
+        skeletonEnemy.visibility = View.GONE
+        spiderEnemy.visibility = View.GONE
+        restrainingOrder.visibility = View.GONE
+        shopKeeper.visibility = View.GONE
+        healthTower.visibility = View.VISIBLE
+
+
         textScreen = "Sanctuary"
-    } else if (roomNumber + 1 == 30) {
+        roomNumber += 1
+        roomText.text = "Room: \n $roomNumber"
+    } else if (sanctuaryCalculation == 30) {
         randomRoom.setImageResource(R.drawable.sanctuary)
         dialogOn()
         dialogue.text = "Push A for a blessing"
         dialogue.visibility = View.VISIBLE
+        gremlinEnemy.visibility = View.GONE
+        ghostEnemy.visibility = View.GONE
+        skeletonEnemy.visibility = View.GONE
+        spiderEnemy.visibility = View.GONE
+        restrainingOrder.visibility = View.GONE
+        shopKeeper.visibility = View.GONE
+        healthTower.visibility = View.VISIBLE
         textScreen = "Sanctuary"
-        } else if (roomNumber + 1 == 30) {
+        roomNumber += 1
+        roomText.text = "Room: \n $roomNumber"
+        } else if (sanctuaryCalculation == 30) {
         randomRoom.setImageResource(R.drawable.sanctuary)
         dialogOn()
         dialogue.text = "Push A for a blessing"
         dialogue.visibility = View.VISIBLE
+        gremlinEnemy.visibility = View.GONE
+        ghostEnemy.visibility = View.GONE
+        skeletonEnemy.visibility = View.GONE
+        spiderEnemy.visibility = View.GONE
+        restrainingOrder.visibility = View.GONE
+        shopKeeper.visibility = View.GONE
+        healthTower.visibility = View.VISIBLE
         textScreen = "Sanctuary"
-    } else if (roomNumber + 1 == 40) {
+        roomNumber += 1
+        roomText.text = "Room: \n $roomNumber"
+    } else if (sanctuaryCalculation == 40) {
         randomRoom.setImageResource(R.drawable.sanctuary)
         dialogOn()
         dialogue.text = "Push A for a blessing"
         dialogue.visibility = View.VISIBLE
+        gremlinEnemy.visibility = View.GONE
+        ghostEnemy.visibility = View.GONE
+        skeletonEnemy.visibility = View.GONE
+        spiderEnemy.visibility = View.GONE
+        restrainingOrder.visibility = View.GONE
+        shopKeeper.visibility = View.GONE
+        healthTower.visibility = View.VISIBLE
         textScreen = "Sanctuary"
-    } else if (roomNumber + 1 == 50) {
+        roomNumber += 1
+        roomText.text = "Room: \n $roomNumber"
+    } else if (sanctuaryCalculation == 50) {
         randomRoom.setImageResource(R.drawable.sanctuary)
         dialogOn()
         dialogue.text = "Push A for a blessing"
         dialogue.visibility = View.VISIBLE
+        gremlinEnemy.visibility = View.GONE
+        ghostEnemy.visibility = View.GONE
+        skeletonEnemy.visibility = View.GONE
+        spiderEnemy.visibility = View.GONE
+        restrainingOrder.visibility = View.GONE
+        shopKeeper.visibility = View.GONE
+        healthTower.visibility = View.VISIBLE
         textScreen = "Sanctuary"
-    }else if (roomNumber + 1 == 60) {
+        roomNumber += 1
+        roomText.text = "Room: \n $roomNumber"
+    }else if (sanctuaryCalculation == 60) {
         randomRoom.setImageResource(R.drawable.sanctuary)
         dialogOn()
         dialogue.text = "Push A for a blessing"
         dialogue.visibility = View.VISIBLE
+        gremlinEnemy.visibility = View.GONE
+        ghostEnemy.visibility = View.GONE
+        skeletonEnemy.visibility = View.GONE
+        spiderEnemy.visibility = View.GONE
+        restrainingOrder.visibility = View.GONE
+        shopKeeper.visibility = View.GONE
+        healthTower.visibility = View.VISIBLE
         textScreen = "Sanctuary"
-    }else if (roomNumber + 1 == 70) {
+        roomNumber += 1
+        roomText.text = "Room: \n $roomNumber"
+    }else if (sanctuaryCalculation == 70) {
         randomRoom.setImageResource(R.drawable.sanctuary)
         dialogOn()
         dialogue.text = "Push A for a blessing"
         dialogue.visibility = View.VISIBLE
+        gremlinEnemy.visibility = View.GONE
+        ghostEnemy.visibility = View.GONE
+        skeletonEnemy.visibility = View.GONE
+        spiderEnemy.visibility = View.GONE
+        restrainingOrder.visibility = View.GONE
+        shopKeeper.visibility = View.GONE
+        healthTower.visibility = View.VISIBLE
         textScreen = "Sanctuary"
-    }else if (roomNumber + 1 == 80) {
+        roomNumber += 1
+        roomText.text = "Room: \n $roomNumber"
+    }else if (sanctuaryCalculation == 80) {
         randomRoom.setImageResource(R.drawable.sanctuary)
         dialogOn()
         dialogue.text = "Push A for a blessing"
         dialogue.visibility = View.VISIBLE
+        gremlinEnemy.visibility = View.GONE
+        ghostEnemy.visibility = View.GONE
+        skeletonEnemy.visibility = View.GONE
+        spiderEnemy.visibility = View.GONE
+        restrainingOrder.visibility = View.GONE
+        shopKeeper.visibility = View.GONE
+        healthTower.visibility = View.VISIBLE
         textScreen = "Sanctuary"
-    }else if (roomNumber + 1 == 90) {
+        roomNumber += 1
+        roomText.text = "Room: \n $roomNumber"
+    }else if (sanctuaryCalculation == 90) {
         randomRoom.setImageResource(R.drawable.sanctuary)
         dialogOn()
         dialogue.text = "Push A for a blessing"
         dialogue.visibility = View.VISIBLE
+        gremlinEnemy.visibility = View.GONE
+        ghostEnemy.visibility = View.GONE
+        skeletonEnemy.visibility = View.GONE
+        spiderEnemy.visibility = View.GONE
+        restrainingOrder.visibility = View.GONE
+        shopKeeper.visibility = View.GONE
+        healthTower.visibility = View.VISIBLE
         textScreen = "Sanctuary"
-    } else if (roomNumber + 1 == 100) {
+        roomNumber += 1
+        roomText.text = "Room: \n $roomNumber"
+    } else if (sanctuaryCalculation == 100) {
         randomRoom.setImageResource(R.drawable.sanctuary)
         dialogOn()
         dialogue.text = "Push A for a blessing"
         dialogue.visibility = View.VISIBLE
+        gremlinEnemy.visibility = View.GONE
+        ghostEnemy.visibility = View.GONE
+        skeletonEnemy.visibility = View.GONE
+        spiderEnemy.visibility = View.GONE
+        restrainingOrder.visibility = View.GONE
+        shopKeeper.visibility = View.GONE
+        healthTower.visibility = View.VISIBLE
         textScreen = "Sanctuary"
-    } else {
+        roomNumber += 1
+        roomText.text = "Room: \n $roomNumber"
+    }
+    else {
         nextRoomNumber = Random.nextInt(1, 5)
 
         when (nextRoomNumber) {
@@ -2271,6 +2472,15 @@ private fun nextRoomGeneration() {
         }
 
         roomNumber += 1
+
+        roomText.text = "Room: \n $roomNumber"
+        shopChance = Random.nextInt(1, 10)
+
+        if (shopChance == 10) {
+            shopIshere = true
+        } else {
+            shopIshere = false
+        }
 
 
         randomMonsterNumber = Random.nextInt(1,17)
